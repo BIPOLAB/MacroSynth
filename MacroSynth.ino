@@ -1,4 +1,6 @@
 // MacroSynth: sketch entry point. Audio runs independently from UI.
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
 #include "Config.h"
 #include "State.h"
 #include "Synth.h"
