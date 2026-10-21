@@ -1,0 +1,10 @@
+# Arduino local/build output
+build/
+*.bin
+*.elf
+*.map
+*.hex
+*.uf2
+.DS_Store
+.vscode/
+.idea/
