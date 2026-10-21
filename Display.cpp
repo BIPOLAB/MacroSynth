@@ -1,4 +1,5 @@
 #include "Display.h"
+#include "Synth.h"
 Adafruit_ST7789 tft(TFT_CS, TFT_DC, TFT_RST);
 void drawHeader(const char *title) {
   tft.fillRect(0, 0, 240, 34, UI_BG);
@@ -267,5 +268,4 @@ void drawCurrentScreen() {
 
   displayDirty = false;
 }
-
 
