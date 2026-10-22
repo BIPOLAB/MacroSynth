@@ -172,9 +172,14 @@ void changeParameter(int direction) {
       activeSoundPreset.pitchEnvelope.decayMs = clampFloat(activeSoundPreset.pitchEnvelope.decayMs + direction, 0.0f, 10000.0f);
       activeSoundPreset.pitchEnvelope.enabled = true;
       break;
-    case PARAM_DRUM_MODEL:
-      activeSoundPreset.drum.model = (DrumModel)wrapIndex((int)activeSoundPreset.drum.model + direction, DRUM_MODEL_COUNT);
+    case PARAM_DRUM_MODEL: {
+      const DrumModel nextModel = (DrumModel)wrapIndex((int)activeSoundPreset.drum.model + direction, DRUM_MODEL_COUNT);
+      char savedName[BIPO_SOUND_NAME_LENGTH] = {};
+      strncpy(savedName, activeSoundPreset.name, sizeof(savedName) - 1);
+      makeDefaultDrumPreset(activeSoundPreset, nextModel, savedName);
+      baseFrequency = activeSoundPreset.frequencyHz;
       break;
+    }
     case PARAM_SWEEP_TIME: activeSoundPreset.drum.sweepTimeMs = clampFloat(activeSoundPreset.drum.sweepTimeMs + direction, 0.0f, 2000.0f); break;
     case PARAM_SWEEP_DEPTH: activeSoundPreset.drum.sweepDepthSemitones = clampFloat(activeSoundPreset.drum.sweepDepthSemitones + direction, -48.0f, 72.0f); break;
     case PARAM_ALGORITHM: activeSoundPreset.drum.algorithm = (uint8_t)wrapIndex((int)activeSoundPreset.drum.algorithm + direction, 8); break;
