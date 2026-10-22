@@ -9,6 +9,7 @@
 #include "Menu.h"
 #include "Display.h"
 #include "SerialControl.h"
+#include "SoundPreset.h"
 
 // I2S.write() is blocking, so keep it off the Arduino loop that draws the TFT.
 // Core 0 runs audio; Arduino loop/UI remains on core 1 on the ESP32-S3.
@@ -28,6 +29,8 @@ static void audioTask(void *parameter) {
 
 void setup() {
   Serial.begin(115200);
+  makeDefaultKickPreset(activeSoundPreset);
+  Serial.println("BIPO Kick inicializado con preset de fabrica (aun no guardado).");
 
   pinMode(ENCODER_CLK, INPUT_PULLUP);
   pinMode(ENCODER_DT, INPUT_PULLUP);
