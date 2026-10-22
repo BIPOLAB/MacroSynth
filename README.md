@@ -23,7 +23,12 @@ En `PRESETS` se puede cargar un sonido o abrir sus acciones. `SAVE CURRENT` guar
 
 Los presets se almacenan en LittleFS como archivos `.bps`, con versión de esquema y checksum. Si no se puede montar LittleFS, el firmware no formatea la memoria automáticamente.
 
-## BIPO DRUM: síntesis percusiva\nBIPO DRUM usa una voz híbrida original: cuerpo FM de tres osciladores, barrido de tono, varios ruteos de modulación, wavefolding, ruido filtrado y una capa de transitorio independiente. Cada capa tiene controles de nivel y/o envolvente propios. Desde `SOUND → PARAMETERS` se puede elegir una familia inicial (kick, snare, closed hat, open hat, clap, tom, rim o metal) y editar el sonido. Al cambiar de familia se cargan valores de partida; después se pueden retocar y guardar como preset. Dentro de la edición de parámetros, una pulsación corta dispara una escucha y una pulsación larga vuelve.\n\nLa estructura está inspirada en los principios generales del FM Drum de Digitone II, pero el DSP, los ruteos, los valores y la interfaz de BipoLab son propios. No es una copia ni un port del código de Elektron.\n\n## Motores
+## BIPO DRUM: síntesis percusiva
+BIPO DRUM usa una voz híbrida original: cuerpo FM de tres osciladores, barrido de tono, varios ruteos de modulación, wavefolding, ruido filtrado y una capa de transitorio independiente. Cada capa tiene controles de nivel y/o envolvente propios. Desde `SOUND → PARAMETERS` se puede elegir una familia inicial (kick, snare, closed hat, open hat, clap, tom, rim o metal) y editar el sonido. Al cambiar de familia se cargan valores de partida; después se pueden retocar y guardar como preset. Dentro de la edición de parámetros, una pulsación corta dispara una escucha y una pulsación larga vuelve.
+
+La estructura está inspirada en los principios generales del FM Drum de Digitone II, pero el DSP, los ruteos, los valores y la interfaz de BipoLab son propios. No es una copia ni un port del código de Elektron.
+
+## Motores
 | Motor | Estado |
 | --- | --- |
 | Analog, FM, Wavetable, Pluck, Modal, Noise, Chord, Texture | Motores experimentales del prototipo |
