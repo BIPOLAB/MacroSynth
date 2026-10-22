@@ -1,37 +1,14 @@
 #pragma once
 #include "Config.h"
+#include "SoundPreset.h"
 enum EngineType {
-  ENGINE_ANALOG = 0,
-  ENGINE_FM,
-  ENGINE_WAVETABLE,
-  ENGINE_PLUCK,
-  ENGINE_MODAL,
-  ENGINE_NOISE,
-  ENGINE_CHORD,
-  ENGINE_TEXTURE,
+  ENGINE_ANALOG = 0, ENGINE_FM, ENGINE_WAVETABLE, ENGINE_PLUCK,
+  ENGINE_MODAL, ENGINE_NOISE, ENGINE_CHORD, ENGINE_TEXTURE, ENGINE_KICK,
   ENGINE_COUNT
 };
-
-enum ScreenState {
-  SCREEN_MAIN,
-  SCREEN_ENGINE_MENU,
-  SCREEN_PARAMETER_MENU,
-  SCREEN_EDIT_PARAMETER
-};
-
-enum ParameterType {
-  PARAM_FREQUENCY = 0,
-  PARAM_BRIGHTNESS,
-  PARAM_VOLUME,
-  PARAMETER_COUNT
-};
-
-enum ButtonEvent {
-  BUTTON_NONE,
-  BUTTON_SHORT,
-  BUTTON_LONG
-};
-
+enum ScreenState { SCREEN_MAIN, SCREEN_ENGINE_MENU, SCREEN_PARAMETER_MENU, SCREEN_EDIT_PARAMETER };
+enum ParameterType { PARAM_FREQUENCY = 0, PARAM_BRIGHTNESS, PARAM_VOLUME, PARAMETER_COUNT };
+enum ButtonEvent { BUTTON_NONE, BUTTON_SHORT, BUTTON_LONG };
 extern const char *engineNames[ENGINE_COUNT];
 extern const char *engineDescriptions[ENGINE_COUNT];
 extern const char *parameterNames[PARAMETER_COUNT];
@@ -49,3 +26,8 @@ extern int previousEncoderState;
 extern bool lastButtonReading, stableButtonState;
 extern uint32_t lastButtonChange, buttonPressTime;
 extern bool longPressSent;
+extern SoundPreset activeSoundPreset;
+extern volatile bool kickTriggerRequested;
+extern float kickPhase;
+extern uint32_t kickAgeSamples;
+extern float kickAmplitude;
