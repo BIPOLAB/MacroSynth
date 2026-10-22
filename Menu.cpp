@@ -245,7 +245,8 @@ void selectCurrentMenuItem() {
       screenState = SCREEN_EDIT_PARAMETER;
       break;
     case SCREEN_EDIT_PARAMETER:
-      kickTriggerRequested = true;
+      // Audition the current drum sound while editing, not an unrelated fixed kick.
+      if (currentEngine == ENGINE_KICK) kickTriggerRequested = true;
       break;
     case SCREEN_PRESET_BROWSER:
       openPresetActions();
@@ -279,23 +280,43 @@ void handleButton(ButtonEvent event) {
     return;
   }
   if (event != BUTTON_LONG) return;
-  if (screenState == SCREEN_MAIN) {
-    screenState = SCREEN_SYSTEM;
-  } else if (screenState == SCREEN_NAME_EDITOR) {
-    screenState = SCREEN_PRESET_ACTIONS;
-  } else if (screenState == SCREEN_EDIT_PARAMETER) {
-    screenState = SCREEN_PARAMETER_MENU;
-  } else if (screenState == SCREEN_PRESET_ACTIONS) {
-    screenState = SCREEN_PRESET_BROWSER;
-  } else if (screenState == SCREEN_PRESET_BROWSER || screenState == SCREEN_SYSTEM) {
-    screenState = SCREEN_MAIN;
-    menuSelection = 0;
-  } else if (screenState == SCREEN_ENGINE_MENU || screenState == SCREEN_PARAMETER_MENU) {
-    screenState = SCREEN_SOUND_MENU;
-    menuSelection = 0;
-  } else {
-    screenState = SCREEN_MAIN;
-    menuSelection = 0;
+
+  // A long press always means BACK/CANCEL. It must never open an unrelated
+  // screen, and each submenu returns to its actual parent.
+  switch (screenState) {
+    case SCREEN_MAIN:
+      // There is no parent screen.
+      break;
+    case SCREEN_SOUND_MENU:
+      screenState = SCREEN_MAIN;
+      menuSelection = 1; // Return to SOUND.
+      break;
+    case SCREEN_ENGINE_MENU:
+      screenState = SCREEN_SOUND_MENU;
+      menuSelection = 0; // Return to ENGINE.
+      break;
+    case SCREEN_PARAMETER_MENU:
+      screenState = SCREEN_SOUND_MENU;
+      menuSelection = 1; // Return to PARAMETERS.
+      break;
+    case SCREEN_EDIT_PARAMETER:
+      screenState = SCREEN_PARAMETER_MENU;
+      // Keep parameterSelection so the user returns to the same parameter.
+      break;
+    case SCREEN_PRESET_BROWSER:
+      screenState = SCREEN_MAIN;
+      menuSelection = 2; // Return to PRESETS.
+      break;
+    case SCREEN_PRESET_ACTIONS:
+      screenState = SCREEN_PRESET_BROWSER;
+      break;
+    case SCREEN_NAME_EDITOR:
+      screenState = SCREEN_PRESET_ACTIONS; // Cancel name editing.
+      break;
+    case SCREEN_SYSTEM:
+      screenState = SCREEN_MAIN;
+      menuSelection = 3; // Return to SYSTEM.
+      break;
   }
   displayDirty = true;
 }
