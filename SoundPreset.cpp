@@ -95,6 +95,7 @@ bool saveSoundPreset(const SoundPreset &preset) {
   char path[48];
   makePath(path, sizeof(path), preset.name);
   const String temporaryPath = String(path) + ".tmp";
+  const String backupPath = String(path) + ".bak";
 
   DiskHeader header;
   memcpy(header.magic, FILE_MAGIC, sizeof(FILE_MAGIC));
@@ -115,11 +116,19 @@ bool saveSoundPreset(const SoundPreset &preset) {
     return false;
   }
 
-  LittleFS.remove(path);
-  if (!LittleFS.rename(temporaryPath, path)) {
+  // Keep the previous version recoverable if replacing the target fails.
+  LittleFS.remove(backupPath);
+  const bool hadPrevious = LittleFS.exists(path);
+  if (hadPrevious && !LittleFS.rename(path, backupPath)) {
     LittleFS.remove(temporaryPath);
     return false;
   }
+  if (!LittleFS.rename(temporaryPath, path)) {
+    if (hadPrevious) LittleFS.rename(backupPath, path);
+    LittleFS.remove(temporaryPath);
+    return false;
+  }
+  if (hadPrevious) LittleFS.remove(backupPath);
   return true;
 }
 
