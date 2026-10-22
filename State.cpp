@@ -27,6 +27,7 @@ bool lastButtonReading = HIGH, stableButtonState = HIGH;
 uint32_t lastButtonChange = 0, buttonPressTime = 0;
 bool longPressSent = false;
 SoundPreset activeSoundPreset;
+SoundPreset audioSoundPreset;
 volatile bool kickTriggerRequested = false;
 float kickPhase = 0.0f;
 uint32_t kickAgeSamples = 0;
