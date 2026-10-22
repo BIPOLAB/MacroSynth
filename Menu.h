@@ -4,3 +4,5 @@ void changeParameter(int direction);
 void selectCurrentMenuItem();
 void handleButton(ButtonEvent event);
 void handleEncoder();
+void refreshPresetNames();
+void markSoundEdited();
