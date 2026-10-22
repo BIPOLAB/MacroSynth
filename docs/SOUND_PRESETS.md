@@ -1,4 +1,4 @@
-# BipoLab sound presets — schema v1
+# BipoLab sound presets — schema v2
 
 ## Design goals
 - A sound is an independently named asset, not a pointer to live UI globals.
@@ -12,7 +12,7 @@
 - Name (1–23 ASCII characters: letters, digits, underscore and hyphen).
 - Engine ID, frequency, brightness, level and modulation flag.
 - Amplitude envelope: attack, decay, sustain and release.
-- Pitch envelope: semitone amount, decay time and enable flag.
+- Pitch envelope: semitone amount, decay time and enable flag.\n- Drum engine: model, FM algorithm/waves/ratios/modulation, pitch sweep, feedback, wavefold, independent body/noise hold-decay-level controls, noise filter, transient and deterministic-noise options.
 
 BIPO Kick currently consumes frequency, level, amplitude contour and pitch envelope. Its amplitude envelope is one-shot: attack, decay toward sustain, then release to silence. There is no held gate for a kick voice. Other engines currently retain the shared legacy controls; their own complete engine-specific parameter sets are future work.
 
@@ -25,7 +25,7 @@ BIPO Kick currently consumes frequency, level, amplitude contour and pitch envel
 - Loads reject unknown schema versions, unexpected payload sizes, trailing bytes, invalid ranges and checksum mismatches.
 - `LittleFS.begin(false)` is used: a mount failure is reported; the code must not format the filesystem automatically.
 
-This is a firmware-local binary format, not yet a portable desktop interchange format. If fields/layout change, bump the schema version and implement an explicit migration or reject the old file cleanly.
+This is a firmware-local binary format, not yet a portable desktop interchange format. Schema-v1 files are detected and migrated to v2 in RAM on load; the original file remains unchanged until saved again. New writes use the BPS2 header and the expanded payload.
 
 ## On-device workflow\nThe TFT and encoder are the primary UI. Navigate to SOUND to edit the active sound, or PRESETS to load, save the current sound, create a Save As variant, or delete a stored preset. Save As automatically chooses a free suffixed name if the entered name already exists.\n\n## Serial workflow
 Set Serial Monitor to 115200 baud with newline enabled:
