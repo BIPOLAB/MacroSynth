@@ -67,7 +67,7 @@ void makeUniqueSaveAsName(char *name, size_t capacity) {
     snprintf(candidate, sizeof(candidate), "%.18s_%d", base, suffix);
     if (!presetNameExists(candidate)) {
       strncpy(name, candidate, capacity - 1);
-      name[capacity - 1] = '\\0';
+      name[capacity - 1] = '\0';
       return;
     }
   }
@@ -77,8 +77,8 @@ void beginSaveAs() {
   nameEditorSaveAs = true;
   syncPresetFromControls();
   strncpy(editName, activeSoundPreset.name, sizeof(editName) - 1);
-  editName[sizeof(editName) - 1] = '\\0';
-  if (editName[0] == '\\0') strncpy(editName, "BIPO_SOUND", sizeof(editName) - 1);
+  editName[sizeof(editName) - 1] = '\0';
+  if (editName[0] == '\0') strncpy(editName, "BIPO_SOUND", sizeof(editName) - 1);
   editNamePosition = 0;
   const char *found = strchr(NAME_CHARSET, editName[0]);
   editCharIndex = found ? (int)(found - NAME_CHARSET) : 1;
@@ -87,11 +87,11 @@ void beginSaveAs() {
 
 void acceptNameCharacter() {
   if (editNamePosition >= BIPO_SOUND_NAME_LENGTH - 1) {
-    editName[BIPO_SOUND_NAME_LENGTH - 1] = '\\0';
-    if (editName[0] != '\\0') {
+    editName[BIPO_SOUND_NAME_LENGTH - 1] = '\0';
+    if (editName[0] != '\0') {
       if (nameEditorSaveAs) makeUniqueSaveAsName(editName, sizeof(editName));
       strncpy(activeSoundPreset.name, editName, sizeof(activeSoundPreset.name) - 1);
-      activeSoundPreset.name[sizeof(activeSoundPreset.name) - 1] = '\\0';
+      activeSoundPreset.name[sizeof(activeSoundPreset.name) - 1] = '\0';
       if (saveCurrentPreset()) {
         refreshPresetNames();
         screenState = SCREEN_PRESET_BROWSER;
@@ -102,11 +102,11 @@ void acceptNameCharacter() {
   }
   const char selected = NAME_CHARSET[editCharIndex];
   if (selected == ' ') {
-    editName[editNamePosition] = '\\0';
-    if (editName[0] != '\\0') {
+    editName[editNamePosition] = '\0';
+    if (editName[0] != '\0') {
       if (nameEditorSaveAs) makeUniqueSaveAsName(editName, sizeof(editName));
       strncpy(activeSoundPreset.name, editName, sizeof(activeSoundPreset.name) - 1);
-      activeSoundPreset.name[sizeof(activeSoundPreset.name) - 1] = '\\0';
+      activeSoundPreset.name[sizeof(activeSoundPreset.name) - 1] = '\0';
       if (saveCurrentPreset()) {
         refreshPresetNames();
         screenState = SCREEN_PRESET_BROWSER;
@@ -116,7 +116,7 @@ void acceptNameCharacter() {
     return;
   }
   editName[editNamePosition] = selected;
-  if (editNamePosition + 1 < BIPO_SOUND_NAME_LENGTH) editName[editNamePosition + 1] = '\\0';
+  if (editNamePosition + 1 < BIPO_SOUND_NAME_LENGTH) editName[editNamePosition + 1] = '\0';
   ++editNamePosition;
   const char *found = strchr(NAME_CHARSET, editName[editNamePosition]);
   editCharIndex = found ? (int)(found - NAME_CHARSET) : 1;
