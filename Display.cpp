@@ -54,19 +54,7 @@ void drawRows(const char *title, const char **items, int count, int selected, co
 
 void drawMainScreen() {
   const char *items[] = {"PLAY", "SOUND", "PRESETS", "SYSTEM"};
-  drawRows("MACROSYNTH", items, 4, menuSelection, "TURN: SELECT   CLICK: OPEN");
-  tft.setTextSize(1);
-  tft.setTextColor(UI_GRAY, UI_BG);
-  tft.setCursor(12, 202);
-  tft.print("ENGINE:");
-  tft.setTextColor(UI_ACCENT, UI_BG);
-  tft.setCursor(65, 202);
-  tft.print(engineNames[currentEngine]);
-  if (soundDirty) {
-    tft.setTextColor(UI_ACCENT, UI_BG);
-    tft.setCursor(176, 202);
-    tft.print("* EDITED");
-  }
+  drawRows(soundDirty ? "MACROSYNTH *" : "MACROSYNTH", items, 4, menuSelection, "TURN: SELECT   CLICK: OPEN");
 }
 
 void drawSoundMenu() {
