@@ -1,271 +1,227 @@
 #include "Display.h"
 #include "Synth.h"
+#include "Menu.h"
+#include <stdio.h>
+#include <string.h>
+
 Adafruit_ST7789 tft(TFT_CS, TFT_DC, TFT_RST);
+
+namespace {
 void drawHeader(const char *title) {
   tft.fillRect(0, 0, 240, 34, UI_BG);
-
   tft.setTextSize(2);
   tft.setTextColor(UI_WHITE, UI_BG);
   tft.setCursor(10, 8);
   tft.print(title);
-
   tft.fillRect(0, 33, 240, 2, UI_ACCENT);
 }
 
 void drawFooter(const char *text) {
   tft.fillRect(0, 216, 240, 24, UI_BG);
-
   tft.setTextSize(1);
   tft.setTextColor(UI_GRAY, UI_BG);
-  tft.setCursor(10, 224);
+  tft.setCursor(8, 224);
   tft.print(text);
 }
 
-void drawMenuRow(int y, const char *label, bool selected) {
-  uint16_t bg = selected ? UI_ACCENT : UI_BG;
-  uint16_t fg = selected ? UI_BG : UI_WHITE;
-
+void drawMenuRow(int y, const char *label, bool selected, const char *right = nullptr) {
+  const uint16_t bg = selected ? UI_ACCENT : UI_BG;
+  const uint16_t fg = selected ? UI_BG : UI_WHITE;
   tft.fillRoundRect(8, y, 224, 34, 4, bg);
-
   tft.setTextSize(2);
   tft.setTextColor(fg, bg);
-  tft.setCursor(18, y + 9);
+  tft.setCursor(17, y + 9);
   tft.print(label);
-
-  if (selected) {
-    tft.fillRect(8, y, 4, 34, UI_WHITE);
+  if (right) {
+    int16_t x1, y1; uint16_t w, h;
+    tft.getTextBounds(right, 0, 0, &x1, &y1, &w, &h);
+    tft.setCursor(222 - (int)w, y + 10);
+    tft.print(right);
   }
 }
 
-// ============================================================
-// INTERFAZ: PANTALLA PRINCIPAL
-// ============================================================
-
-void drawMainScreen() {
+void drawRows(const char *title, const char **items, int count, int selected, const char *footer) {
   tft.fillScreen(UI_BG);
-
-  drawHeader("BIPOLAB SYNTH");
-
-  // Motor activo
-  tft.setTextSize(1);
-  tft.setTextColor(UI_GRAY, UI_BG);
-  tft.setCursor(12, 47);
-  tft.print("ENGINE");
-
-  tft.setTextSize(3);
-  tft.setTextColor(UI_ACCENT, UI_BG);
-  tft.setCursor(10, 61);
-  tft.print(engineNames[currentEngine]);
-
-  // Separador
-  tft.drawFastHLine(10, 101, 220, UI_DARKGRAY);
-
-  // Frecuencia
-  tft.setTextSize(1);
-  tft.setTextColor(UI_GRAY, UI_BG);
-  tft.setCursor(12, 112);
-  tft.print("FREQUENCY");
-
-  tft.setTextSize(2);
-  tft.setTextColor(UI_WHITE, UI_BG);
-  tft.setCursor(12, 127);
-  tft.print((int)baseFrequency);
-  tft.print(" Hz");
-
-  // Brillo
-  tft.setTextSize(1);
-  tft.setTextColor(UI_GRAY, UI_BG);
-  tft.setCursor(132, 112);
-  tft.print("BRIGHTNESS");
-
-  tft.setTextSize(2);
-  tft.setTextColor(UI_WHITE, UI_BG);
-  tft.setCursor(132, 127);
-  tft.print((int)(brightness * 100.0f));
-  tft.print("%");
-
-  // Barra de brillo
-  tft.drawRect(132, 153, 96, 7, UI_GRAY);
-  tft.fillRect(134, 155, (int)(92.0f * brightness), 3, UI_ACCENT);
-
-  // Modulación
-  tft.setTextSize(1);
-  tft.setTextColor(UI_GRAY, UI_BG);
-  tft.setCursor(12, 171);
-  tft.print("MOD");
-
-  tft.setTextSize(2);
-  tft.setTextColor(modulationEnabled ? UI_ACCENT : UI_GRAY, UI_BG);
-  tft.setCursor(45, 167);
-  tft.print(modulationEnabled ? "ON" : "OFF");
-
-  // Volumen
-  tft.setTextSize(1);
-  tft.setTextColor(UI_GRAY, UI_BG);
-  tft.setCursor(132, 171);
-  tft.print("VOLUME");
-
-  tft.setTextSize(2);
-  tft.setTextColor(UI_WHITE, UI_BG);
-  tft.setCursor(132, 185);
-  tft.print((int)(masterVolume * 100.0f));
-  tft.print("%");
-
-  drawFooter("CLICK: ENGINES   HOLD: PARAMETERS");
+  drawHeader(title);
+  const int visibleRows = 4;
+  int first = selected >= visibleRows ? selected - visibleRows + 1 : 0;
+  for (int row = 0; row < visibleRows && first + row < count; ++row) {
+    const int item = first + row;
+    drawMenuRow(42 + row * 42, items[item], item == selected);
+  }
+  drawFooter(footer);
 }
 
-// ============================================================
-// INTERFAZ: MENU DE MOTORES
-// ============================================================
+void drawMainScreen() {
+  const char *items[] = {"PLAY", "SOUND", "PRESETS", "SYSTEM"};
+  drawRows("MACROSYNTH", items, 4, menuSelection, "TURN: SELECT   CLICK: OPEN");
+  tft.setTextSize(1);
+  tft.setTextColor(UI_GRAY, UI_BG);
+  tft.setCursor(12, 202);
+  tft.print("ENGINE:");
+  tft.setTextColor(UI_ACCENT, UI_BG);
+  tft.setCursor(65, 202);
+  tft.print(engineNames[currentEngine]);
+  if (soundDirty) {
+    tft.setTextColor(UI_ACCENT, UI_BG);
+    tft.setCursor(176, 202);
+    tft.print("* EDITED");
+  }
+}
+
+void drawSoundMenu() {
+  const char *items[] = {"ENGINE", "PARAMETERS", "MODULATION", "TRIGGER", "BACK"};
+  drawRows("SOUND", items, 5, menuSelection, "CLICK: SELECT   HOLD: BACK");
+  tft.setTextSize(1);
+  tft.setTextColor(UI_GRAY, UI_BG);
+  tft.setCursor(12, 204);
+  tft.print("ACTIVE: ");
+  tft.setTextColor(UI_ACCENT, UI_BG);
+  tft.print(engineNames[currentEngine]);
+}
 
 void drawEngineMenu() {
   tft.fillScreen(UI_BG);
-  drawHeader("SELECT ENGINE");
-
+  drawHeader("ENGINE");
   const int visibleRows = 4;
-  int firstItem = 0;
-
-  if (menuSelection >= visibleRows) {
-    firstItem = menuSelection - visibleRows + 1;
+  const int first = menuSelection >= visibleRows ? menuSelection - visibleRows + 1 : 0;
+  for (int row = 0; row < visibleRows && first + row < ENGINE_COUNT; ++row) {
+    const int item = first + row;
+    drawMenuRow(42 + row * 42, engineNames[item], item == menuSelection);
   }
-
-  for (int row = 0; row < visibleRows; row++) {
-    int item = firstItem + row;
-
-    if (item >= ENGINE_COUNT) break;
-
-    drawMenuRow(
-      43 + row * 40,
-      engineNames[item],
-      item == menuSelection
-    );
-  }
-
-  drawFooter("TURN: SELECT   CLICK: LOAD");
+  drawFooter("CLICK: CHOOSE   HOLD: BACK");
 }
-
-// ============================================================
-// INTERFAZ: MENU DE PARAMETROS
-// ============================================================
 
 void drawParameterMenu() {
   tft.fillScreen(UI_BG);
-  drawHeader("PARAMETERS");
-
-  for (int i = 0; i < PARAMETER_COUNT; i++) {
-    drawMenuRow(
-      47 + i * 48,
-      parameterNames[i],
-      i == parameterSelection
-    );
+  drawHeader("SOUND PARAMETERS");
+  const int visibleRows = 4;
+  const int first = parameterSelection >= visibleRows ? parameterSelection - visibleRows + 1 : 0;
+  for (int row = 0; row < visibleRows && first + row < PARAMETER_COUNT; ++row) {
+    const int item = first + row;
+    drawMenuRow(42 + row * 42, parameterNames[item], item == parameterSelection);
   }
-
   drawFooter("CLICK: EDIT   HOLD: BACK");
 }
-
-// ============================================================
-// INTERFAZ: EDICION DE PARAMETRO
-// ============================================================
 
 void drawParameterEdit() {
   tft.fillScreen(UI_BG);
   drawHeader(parameterNames[editingParameter]);
-
-  char valueText[24];
-
+  char value[32] = {};
   switch (editingParameter) {
-    case PARAM_FREQUENCY:
-      snprintf(valueText, sizeof(valueText), "%d Hz", (int)baseFrequency);
-      break;
-
-    case PARAM_BRIGHTNESS:
-      snprintf(valueText, sizeof(valueText), "%d%%", (int)(brightness * 100.0f));
-      break;
-
-    case PARAM_VOLUME:
-      snprintf(valueText, sizeof(valueText), "%d%%", (int)(masterVolume * 100.0f));
-      break;
-
-    default:
-      snprintf(valueText, sizeof(valueText), "--");
-      break;
+    case PARAM_FREQUENCY: snprintf(value, sizeof(value), "%.1f Hz", baseFrequency); break;
+    case PARAM_BRIGHTNESS: snprintf(value, sizeof(value), "%d%%", (int)(brightness * 100.0f)); break;
+    case PARAM_VOLUME: snprintf(value, sizeof(value), "%d%%", (int)((currentEngine == ENGINE_KICK ? activeSoundPreset.level : masterVolume) * 100.0f)); break;
+    case PARAM_AMP_ATTACK: snprintf(value, sizeof(value), "%.1f ms", activeSoundPreset.amplitudeEnvelope.attackMs); break;
+    case PARAM_AMP_DECAY: snprintf(value, sizeof(value), "%.1f ms", activeSoundPreset.amplitudeEnvelope.decayMs); break;
+    case PARAM_AMP_SUSTAIN: snprintf(value, sizeof(value), "%d%%", (int)(activeSoundPreset.amplitudeEnvelope.sustain * 100.0f)); break;
+    case PARAM_AMP_RELEASE: snprintf(value, sizeof(value), "%.1f ms", activeSoundPreset.amplitudeEnvelope.releaseMs); break;
+    case PARAM_PITCH_AMOUNT: snprintf(value, sizeof(value), "%.1f st", activeSoundPreset.pitchEnvelope.amountSemitones); break;
+    case PARAM_PITCH_DECAY: snprintf(value, sizeof(value), "%.1f ms", activeSoundPreset.pitchEnvelope.decayMs); break;
+    default: snprintf(value, sizeof(value), "--"); break;
   }
-
-  tft.setTextColor(UI_WHITE, UI_BG);
   tft.setTextSize(3);
-
-  int16_t x1, y1;
-  uint16_t w, h;
-
-  tft.getTextBounds(valueText, 0, 0, &x1, &y1, &w, &h);
-  int x = (240 - (int)w) / 2;
-
-  tft.setCursor(x, 88);
-  tft.print(valueText);
-
-  tft.drawRoundRect(15, 142, 210, 12, 4, UI_GRAY);
-
-  float normalized = 0.0f;
-
-  switch (editingParameter) {
-    case PARAM_FREQUENCY:
-      normalized = (baseFrequency - 20.0f) / (2000.0f - 20.0f);
-      break;
-
-    case PARAM_BRIGHTNESS:
-      normalized = brightness;
-      break;
-
-    case PARAM_VOLUME:
-      normalized = masterVolume / 0.80f;
-      break;
-
-    default:
-      break;
-  }
-
-  normalized = clampFloat(normalized, 0.0f, 1.0f);
-
-  int barWidth = (int)(204.0f * normalized);
-
-  if (barWidth > 0) {
-    tft.fillRoundRect(18, 145, barWidth, 6, 2, UI_ACCENT);
-  }
-
+  tft.setTextColor(UI_ACCENT, UI_BG);
+  int16_t x1, y1; uint16_t w, h;
+  tft.getTextBounds(value, 0, 0, &x1, &y1, &w, &h);
+  tft.setCursor((240 - (int)w) / 2, 93);
+  tft.print(value);
   tft.setTextSize(1);
   tft.setTextColor(UI_GRAY, UI_BG);
-  tft.setCursor(22, 174);
-  tft.print("TURN TO CHANGE");
-
+  tft.setCursor(22, 150);
+  tft.print("TURN ENCODER TO CHANGE");
+  tft.setCursor(22, 170);
+  tft.print("CLICK TO FINISH");
   tft.setCursor(22, 190);
-  tft.print("CLICK TO RETURN");
-
-  drawFooter("BIPOLAB / SYNTH ENGINE");
+  tft.setTextColor(soundDirty ? UI_ACCENT : UI_GRAY, UI_BG);
+  tft.print(soundDirty ? "UNSAVED CHANGES *" : "PRESET UNCHANGED");
+  drawFooter("HOLD: BACK TO PARAMETERS");
 }
 
-// ============================================================
-// DIBUJADO DE PANTALLAS
-// ============================================================
+void drawPresetBrowser() {
+  tft.fillScreen(UI_BG);
+  drawHeader("SOUND PRESETS");
+  if (presetCount == 0) {
+    tft.setTextSize(2);
+    tft.setTextColor(UI_GRAY, UI_BG);
+    tft.setCursor(20, 86);
+    tft.print("NO PRESETS");
+    tft.setTextSize(1);
+    tft.setCursor(20, 116);
+    tft.print("Choose Save As from SOUND.");
+  } else {
+    const int visibleRows = 4;
+    const int first = presetSelection >= visibleRows ? presetSelection - visibleRows + 1 : 0;
+    for (int row = 0; row < visibleRows && first + row < presetCount; ++row) {
+      const int item = first + row;
+      drawMenuRow(42 + row * 42, presetNames[item], item == presetSelection);
+    }
+  }
+  drawFooter("CLICK: PRESET ACTIONS   HOLD: BACK");
+}
+
+void drawPresetActions() {
+  const char *items[PRESET_ACTION_COUNT];
+  for (int i = 0; i < PRESET_ACTION_COUNT; ++i) items[i] = presetActionNames[i];
+  drawRows("PRESET ACTION", items, PRESET_ACTION_COUNT, presetActionSelection, "CLICK: CONFIRM   HOLD: BACK");
+  if (presetCount > 0) {
+    tft.setTextSize(1); tft.setTextColor(UI_GRAY, UI_BG);
+    tft.setCursor(12, 204); tft.print(presetNames[presetSelection]);
+  }
+}
+
+void drawNameEditor() {
+  tft.fillScreen(UI_BG);
+  drawHeader("SAVE AS");
+  tft.setTextSize(1);
+  tft.setTextColor(UI_GRAY, UI_BG);
+  tft.setCursor(12, 55);
+  tft.print("TURN: CHANGE CHARACTER");
+  tft.setCursor(12, 72);
+  tft.print("CLICK: ACCEPT CHARACTER");
+  tft.setTextSize(2);
+  tft.setTextColor(UI_WHITE, UI_BG);
+  tft.setCursor(12, 112);
+  tft.print(editName);
+  tft.setTextColor(UI_ACCENT, UI_BG);
+  const char current = " ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-"[editCharIndex];
+  tft.setCursor(12 + (editNamePosition * 12), 145);
+  tft.print(current == ' ' ? '_' : current);
+  tft.setTextSize(1);
+  tft.setTextColor(UI_GRAY, UI_BG);
+  tft.setCursor(12, 184);
+  tft.print("SELECT SPACE TO FINISH");
+  drawFooter("HOLD: CANCEL");
+}
+
+void drawSystem() {
+  tft.fillScreen(UI_BG);
+  drawHeader("SYSTEM");
+  tft.setTextSize(1);
+  tft.setTextColor(UI_WHITE, UI_BG);
+  tft.setCursor(12, 54); tft.print("BIPOLAB MACROSYNTH MK0");
+  tft.setCursor(12, 78); tft.print("SAMPLE RATE  44100 Hz");
+  tft.setCursor(12, 96); tft.print("OUTPUT       PCM5102 / I2S");
+  tft.setCursor(12, 114); tft.print("DISPLAY      ST7789 240x240");
+  tft.setCursor(12, 132); tft.print("STORAGE      LITTLEFS");
+  tft.setCursor(12, 150); tft.print("SERIAL       DEBUG ONLY");
+  tft.setCursor(12, 178); tft.setTextColor(UI_ACCENT, UI_BG);
+  tft.print(audioReady ? "AUDIO READY" : "AUDIO NOT READY");
+  drawFooter("CLICK OR HOLD: BACK");
+}
+} // namespace
 
 void drawCurrentScreen() {
   switch (screenState) {
-    case SCREEN_MAIN:
-      drawMainScreen();
-      break;
-
-    case SCREEN_ENGINE_MENU:
-      drawEngineMenu();
-      break;
-
-    case SCREEN_PARAMETER_MENU:
-      drawParameterMenu();
-      break;
-
-    case SCREEN_EDIT_PARAMETER:
-      drawParameterEdit();
-      break;
+    case SCREEN_MAIN: drawMainScreen(); break;
+    case SCREEN_SOUND_MENU: drawSoundMenu(); break;
+    case SCREEN_ENGINE_MENU: drawEngineMenu(); break;
+    case SCREEN_PARAMETER_MENU: drawParameterMenu(); break;
+    case SCREEN_EDIT_PARAMETER: drawParameterEdit(); break;
+    case SCREEN_PRESET_BROWSER: drawPresetBrowser(); break;
+    case SCREEN_PRESET_ACTIONS: drawPresetActions(); break;
+    case SCREEN_NAME_EDITOR: drawNameEditor(); break;
+    case SCREEN_SYSTEM: drawSystem(); break;
   }
-
   displayDirty = false;
 }
-
