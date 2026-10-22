@@ -6,8 +6,8 @@ float clampFloat(float value, float minimum, float maximum) {
   return value;
 }
 float wrapPhase(float phase) {
-  while (phase >= TWO_PI) phase -= TWO_PI;
-  while (phase < 0.0f) phase += TWO_PI;
+  if (phase >= TWO_PI) phase -= TWO_PI;
+  else if (phase < 0.0f) phase += TWO_PI;
   return phase;
 }
 // Fast, bounded sine approximation for the per-sample drum path. Avoids the
@@ -89,32 +89,35 @@ static float generateKickSample() {
   const float frequency = clampFloat(audioSoundPreset.frequencyHz * powf(2.0f, pitchSemitones / 12.0f), 20.0f, 15000.0f);
 
   bodyPhaseC = wrapPhase(bodyPhaseC + TWO_PI * frequency / sr);
-  bodyPhaseA = wrapPhase(bodyPhaseA + TWO_PI * frequency * d.ratioA / sr);
-  bodyPhaseB = wrapPhase(bodyPhaseB + TWO_PI * frequency * d.ratioB / sr);
+  // Keep the FM operators below Nyquist to reduce harsh aliasing and CPU spikes.
+  const float freqA = fminf(frequency * d.ratioA, sr * 0.45f);
+  const float freqB = fminf(frequency * d.ratioB, sr * 0.45f);
+  bodyPhaseA = wrapPhase(bodyPhaseA + TWO_PI * freqA / sr);
+  bodyPhaseB = wrapPhase(bodyPhaseB + TWO_PI * freqB / sr);
 
   const float bodyEnv = oneShotEnvelope(ageMs, d.bodyHoldMs, d.bodyDecayMs);
   const float modAEnv = expf(-ageMs / fmaxf(1.0f, d.bodyDecayMs * 0.45f));
   const float modBEnv = expf(-ageMs / fmaxf(1.0f, d.bodyDecayMs * 0.72f));
-  const float opA = sinf(bodyPhaseA + sinf(bodyPhaseB) * d.modulationB * modBEnv);
-  const float opB = sinf(bodyPhaseB) * d.modulationB * modBEnv;
+  const float opA = fastSin(bodyPhaseA + fastSin(bodyPhaseB) * d.modulationB * modBEnv);
+  const float opB = fastSin(bodyPhaseB) * d.modulationB * modBEnv;
   float bodyPhaseMod = 0.0f;
   switch (d.algorithm) {
-    case 0: bodyPhaseMod = sinf(bodyPhaseA) * d.modulationA * modAEnv + opB; break;
+    case 0: bodyPhaseMod = fastSin(bodyPhaseA) * d.modulationA * modAEnv + opB; break;
     case 1: bodyPhaseMod = opA * d.modulationA * modAEnv; break;
-    case 2: bodyPhaseMod = sinf(bodyPhaseB) * d.modulationB * modBEnv + sinf(bodyPhaseA) * d.modulationA * modAEnv; break;
-    case 3: bodyPhaseMod = sinf(bodyPhaseA) * sinf(bodyPhaseB) * d.modulationA * modAEnv * 3.0f; break;
-    case 4: bodyPhaseMod = sinf(bodyPhaseA) * d.modulationA * modAEnv + sinf(bodyPhaseC * 2.0f) * d.feedback * 4.0f; break;
-    case 5: bodyPhaseMod = sinf(bodyPhaseA + opB) * d.modulationA * modAEnv; break;
-    case 6: bodyPhaseMod = sinf(bodyPhaseA) * d.modulationA * modAEnv - opB; break;
+    case 2: bodyPhaseMod = fastSin(bodyPhaseB) * d.modulationB * modBEnv + fastSin(bodyPhaseA) * d.modulationA * modAEnv; break;
+    case 3: bodyPhaseMod = fastSin(bodyPhaseA) * fastSin(bodyPhaseB) * d.modulationA * modAEnv * 3.0f; break;
+    case 4: bodyPhaseMod = fastSin(bodyPhaseA) * d.modulationA * modAEnv + fastSin(bodyPhaseC * 2.0f) * d.feedback * 4.0f; break;
+    case 5: bodyPhaseMod = fastSin(bodyPhaseA + opB) * d.modulationA * modAEnv; break;
+    case 6: bodyPhaseMod = fastSin(bodyPhaseA) * d.modulationA * modAEnv - opB; break;
     default: bodyPhaseMod = opA * d.modulationA * modAEnv + opB; break;
   }
-  float body = sinf(bodyPhaseC + bodyPhaseMod + sinf(bodyPhaseC * 2.0f) * d.feedback);
-  if (d.bodyWave == 1) body = (body * 0.7f) + (sinf(bodyPhaseC * 2.0f) * 0.3f);
+  float body = fastSin(bodyPhaseC + bodyPhaseMod + fastSin(bodyPhaseC * 2.0f) * d.feedback);
+  if (d.bodyWave == 1) body = (body * 0.7f) + (fastSin(bodyPhaseC * 2.0f) * 0.3f);
   else if (d.bodyWave == 2) body = (body > 0.0f) ? body : body * 0.25f;
-  else if (d.bodyWave == 3) body = sinf(bodyPhaseC) * (0.65f + 0.35f * sinf(bodyPhaseA));
+  else if (d.bodyWave == 3) body = fastSin(bodyPhaseC) * (0.65f + 0.35f * fastSin(bodyPhaseA));
   if (d.wavefold > 0.001f) {
     const float foldDrive = 1.0f + d.wavefold * 7.0f;
-    body = sinf(body * foldDrive);
+    body = fastSin(body * foldDrive);
   }
   body *= bodyEnv * d.bodyLevel;
 
@@ -127,7 +130,7 @@ static float generateKickSample() {
   const float highPassed = noise - noiseBaseState;
   noiseLowState += (highPassed - noiseLowState) * widthCoeff;
   float noiseLayer = noiseLowState * oneShotEnvelope(ageMs, d.noiseHoldMs, d.noiseDecayMs) * d.noiseLevel;
-  if (d.noiseRingMod) noiseLayer *= (0.25f + 0.75f * fabsf(sinf(bodyPhaseC)));
+  if (d.noiseRingMod) noiseLayer *= (0.25f + 0.75f * fabsf(fastSin(bodyPhaseC)));
 
   float transient = drumTransient(ageMs, (DrumTransient)d.transientType) * d.transientLevel;
   if (d.model == DRUM_MODEL_CLAP && ageMs < 28.0f) {
@@ -155,7 +158,7 @@ float generateSample() {
   const float sampleRate = (float)SAMPLE_RATE;
   if (currentEngine == ENGINE_KICK) return normalizeSample(generateKickSample());
   float frequency = baseFrequency;
-  if (modulationEnabled) frequency *= 1.0f + sinf(phase3) * 0.015f;
+  if (modulationEnabled) frequency *= 1.0f + fastSin(phase3) * 0.015f;
   frequency = clampFloat(frequency, 20.0f, 8000.0f);
   phase1 = wrapPhase(phase1 + TWO_PI * frequency / sampleRate);
   phase2 = wrapPhase(phase2 + TWO_PI * (frequency * 2.0f) / sampleRate);
@@ -168,23 +171,23 @@ float generateSample() {
       break;
     case ENGINE_FM: {
       const float index = 0.5f + brightness * 8.0f;
-      sample = sinf(phase1 + sinf(phase2) * index);
+      sample = fastSin(phase1 + fastSin(phase2) * index);
       break;
     }
     case ENGINE_WAVETABLE:
-      sample = sinf(phase1) * 0.50f + sinf(phase1 * 2.0f) * brightness * 0.30f +
-               sinf(phase1 * 3.0f) * brightness * 0.15f + sinf(phase1 * 4.0f) * brightness * 0.05f;
+      sample = fastSin(phase1) * 0.50f + fastSin(phase1 * 2.0f) * brightness * 0.30f +
+               fastSin(phase1 * 3.0f) * brightness * 0.15f + fastSin(phase1 * 4.0f) * brightness * 0.05f;
       break;
     case ENGINE_PLUCK: {
       const float decay = 0.995f - brightness * 0.025f;
       envelope = envelope * decay + 0.0005f;
       if (envelope > 1.0f) envelope = 1.0f;
-      sample = (sinf(phase1) * 0.70f + sinf(phase2 * 1.503f) * 0.30f) * envelope;
+      sample = (fastSin(phase1) * 0.70f + fastSin(phase2 * 1.503f) * 0.30f) * envelope;
       if (envelope < 0.01f) envelope = 0.15f;
       break;
     }
     case ENGINE_MODAL:
-      sample = sinf(phase1) * 0.50f + sinf(phase1 * 2.756f) * 0.30f + sinf(phase1 * 5.404f) * 0.20f;
+      sample = fastSin(phase1) * 0.50f + fastSin(phase1 * 2.756f) * 0.30f + fastSin(phase1 * 5.404f) * 0.20f;
       sample *= 0.75f + brightness * 0.25f;
       break;
     case ENGINE_NOISE: {
@@ -194,10 +197,10 @@ float generateSample() {
       break;
     }
     case ENGINE_CHORD:
-      sample = sinf(phase1) * 0.34f + sinf(phase1 * 1.259921f) * 0.33f + sinf(phase1 * 1.498307f) * 0.33f;
+      sample = fastSin(phase1) * 0.34f + fastSin(phase1 * 1.259921f) * 0.33f + fastSin(phase1 * 1.498307f) * 0.33f;
       break;
     case ENGINE_TEXTURE:
-      sample = sinf(phase1) * 0.45f + sinf(phase2 * 1.37f) * 0.25f + nextNoise() * brightness * 0.30f;
+      sample = fastSin(phase1) * 0.45f + fastSin(phase2 * 1.37f) * 0.25f + nextNoise() * brightness * 0.30f;
       break;
     default: break;
   }
