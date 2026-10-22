@@ -77,20 +77,27 @@ static float generateKickSample() {
   const float pitchSemitones = d.sweepDepthSemitones * sweep;
   const float frequency = clampFloat(audioSoundPreset.frequencyHz * powf(2.0f, pitchSemitones / 12.0f), 20.0f, 15000.0f);
 
-  bodyPhaseC += TWO_PI * frequency / sr;
-  bodyPhaseA += TWO_PI * frequency * d.ratioA / sr;
-  bodyPhaseB += TWO_PI * frequency * d.ratioB / sr;
-  if (bodyPhaseC >= TWO_PI) bodyPhaseC -= TWO_PI;
-  if (bodyPhaseA >= TWO_PI) bodyPhaseA -= TWO_PI;
-  if (bodyPhaseB >= TWO_PI) bodyPhaseB -= TWO_PI;
+  bodyPhaseC = wrapPhase(bodyPhaseC + TWO_PI * frequency / sr);
+  bodyPhaseA = wrapPhase(bodyPhaseA + TWO_PI * frequency * d.ratioA / sr);
+  bodyPhaseB = wrapPhase(bodyPhaseB + TWO_PI * frequency * d.ratioB / sr);
 
   const float bodyEnv = oneShotEnvelope(ageMs, d.bodyHoldMs, d.bodyDecayMs);
   const float modAEnv = expf(-ageMs / fmaxf(1.0f, d.bodyDecayMs * 0.45f));
   const float modBEnv = expf(-ageMs / fmaxf(1.0f, d.bodyDecayMs * 0.72f));
-  float body = sinf(bodyPhaseC +
-                    sinf(bodyPhaseA) * d.modulationA * modAEnv +
-                    sinf(bodyPhaseB) * d.modulationB * modBEnv +
-                    sinf(bodyPhaseC * 2.0f) * d.feedback);
+  const float opA = sinf(bodyPhaseA + sinf(bodyPhaseB) * d.modulationB * modBEnv);
+  const float opB = sinf(bodyPhaseB) * d.modulationB * modBEnv;
+  float bodyPhaseMod = 0.0f;
+  switch (d.algorithm) {
+    case 0: bodyPhaseMod = sinf(bodyPhaseA) * d.modulationA * modAEnv + opB; break;
+    case 1: bodyPhaseMod = opA * d.modulationA * modAEnv; break;
+    case 2: bodyPhaseMod = sinf(bodyPhaseB) * d.modulationB * modBEnv + sinf(bodyPhaseA) * d.modulationA * modAEnv; break;
+    case 3: bodyPhaseMod = sinf(bodyPhaseA) * sinf(bodyPhaseB) * d.modulationA * modAEnv * 3.0f; break;
+    case 4: bodyPhaseMod = sinf(bodyPhaseA) * d.modulationA * modAEnv + sinf(bodyPhaseC * 2.0f) * d.feedback * 4.0f; break;
+    case 5: bodyPhaseMod = sinf(bodyPhaseA + opB) * d.modulationA * modAEnv; break;
+    case 6: bodyPhaseMod = sinf(bodyPhaseA) * d.modulationA * modAEnv - opB; break;
+    default: bodyPhaseMod = opA * d.modulationA * modAEnv + opB; break;
+  }
+  float body = sinf(bodyPhaseC + bodyPhaseMod + sinf(bodyPhaseC * 2.0f) * d.feedback);
   if (d.bodyWave == 1) body = (body * 0.7f) + (sinf(bodyPhaseC * 2.0f) * 0.3f);
   else if (d.bodyWave == 2) body = (body > 0.0f) ? body : body * 0.25f;
   else if (d.bodyWave == 3) body = sinf(bodyPhaseC) * (0.65f + 0.35f * sinf(bodyPhaseA));
