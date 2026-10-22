@@ -83,7 +83,7 @@ void makeDefaultKickPreset(SoundPreset &preset, const char *name) {
   preset.modulationEnabled = false;
   preset.amplitudeEnvelope = {0.5f, 180.0f, 0.0f, 30.0f};
   preset.pitchEnvelope = {30.0f, 45.0f, true};
-  preset.drum = {DRUM_MODEL_KICK, 0, 0, DRUM_TRANSIENT_CLICK, 28.0f, 36.0f, 1.0f, 2.0f, 1.8f, 0.7f, 0.08f, 0.0f, 0.0f, 220.0f, 0.9f, 0.0f, 35.0f, 0.12f, 0.18f, 1800.0f, 4200.0f, true, false};
+  preset.drum = {DRUM_MODEL_KICK, 0, 0, DRUM_TRANSIENT_CLICK, 26.0f, 30.0f, 1.0f, 2.0f, 0.85f, 0.25f, 0.02f, 0.0f, 0.0f, 190.0f, 0.78f, 0.0f, 28.0f, 0.045f, 0.055f, 1800.0f, 4200.0f, true, false};
 }
 
 void makeDefaultDrumPreset(SoundPreset &preset, DrumModel model, const char *name) {
