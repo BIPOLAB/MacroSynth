@@ -36,7 +36,7 @@ static void runTextCommand(char *line) {
       currentEngine = loaded.engine == SOUND_ENGINE_KICK ? ENGINE_KICK : (int)loaded.engine;
       baseFrequency = loaded.frequencyHz;
       brightness = loaded.brightness;
-      masterVolume = loaded.level;
+      if (currentEngine != ENGINE_KICK) masterVolume = loaded.level;
       modulationEnabled = loaded.modulationEnabled;
       Serial.printf("Preset cargado: %s\n", loaded.name);
       displayDirty = true;
@@ -76,7 +76,7 @@ static void runTextCommand(char *line) {
     float value;
     if (sscanf(line + 6, "%f", &value) == 1 && value >= 0.0f && value <= 1.0f) {
       activeSoundPreset.level = value;
-      masterVolume = value;
+      if (currentEngine != ENGINE_KICK) masterVolume = value;
       Serial.println("Nivel actualizado.");
     } else Serial.println("Uso: :level 0..1");
   } else if (strcmp(line, "help") == 0) {
