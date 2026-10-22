@@ -172,6 +172,31 @@ void changeParameter(int direction) {
       activeSoundPreset.pitchEnvelope.decayMs = clampFloat(activeSoundPreset.pitchEnvelope.decayMs + direction, 0.0f, 10000.0f);
       activeSoundPreset.pitchEnvelope.enabled = true;
       break;
+    case PARAM_DRUM_MODEL:
+      activeSoundPreset.drum.model = (DrumModel)wrapIndex((int)activeSoundPreset.drum.model + direction, DRUM_MODEL_COUNT);
+      break;
+    case PARAM_SWEEP_TIME: activeSoundPreset.drum.sweepTimeMs = clampFloat(activeSoundPreset.drum.sweepTimeMs + direction, 0.0f, 2000.0f); break;
+    case PARAM_SWEEP_DEPTH: activeSoundPreset.drum.sweepDepthSemitones = clampFloat(activeSoundPreset.drum.sweepDepthSemitones + direction, -48.0f, 72.0f); break;
+    case PARAM_ALGORITHM: activeSoundPreset.drum.algorithm = (uint8_t)wrapIndex((int)activeSoundPreset.drum.algorithm + direction, 8); break;
+    case PARAM_BODY_WAVE: activeSoundPreset.drum.bodyWave = (uint8_t)wrapIndex((int)activeSoundPreset.drum.bodyWave + direction, 4); break;
+    case PARAM_RATIO_A: activeSoundPreset.drum.ratioA = clampFloat(activeSoundPreset.drum.ratioA + direction * 0.125f, 0.125f, 32.0f); break;
+    case PARAM_RATIO_B: activeSoundPreset.drum.ratioB = clampFloat(activeSoundPreset.drum.ratioB + direction * 0.125f, 0.125f, 32.0f); break;
+    case PARAM_MOD_A: activeSoundPreset.drum.modulationA = clampFloat(activeSoundPreset.drum.modulationA + direction * 0.1f, 0.0f, 12.0f); break;
+    case PARAM_MOD_B: activeSoundPreset.drum.modulationB = clampFloat(activeSoundPreset.drum.modulationB + direction * 0.1f, 0.0f, 12.0f); break;
+    case PARAM_FEEDBACK: activeSoundPreset.drum.feedback = clampFloat(activeSoundPreset.drum.feedback + direction * 0.02f, 0.0f, 1.0f); break;
+    case PARAM_WAVEFOLD: activeSoundPreset.drum.wavefold = clampFloat(activeSoundPreset.drum.wavefold + direction * 0.02f, 0.0f, 1.0f); break;
+    case PARAM_BODY_HOLD: activeSoundPreset.drum.bodyHoldMs = clampFloat(activeSoundPreset.drum.bodyHoldMs + direction, 0.0f, 5000.0f); break;
+    case PARAM_BODY_DECAY: activeSoundPreset.drum.bodyDecayMs = clampFloat(activeSoundPreset.drum.bodyDecayMs + direction * 5.0f, 1.0f, 30000.0f); break;
+    case PARAM_BODY_LEVEL: activeSoundPreset.drum.bodyLevel = clampFloat(activeSoundPreset.drum.bodyLevel + direction * 0.02f, 0.0f, 1.0f); break;
+    case PARAM_NOISE_HOLD: activeSoundPreset.drum.noiseHoldMs = clampFloat(activeSoundPreset.drum.noiseHoldMs + direction, 0.0f, 5000.0f); break;
+    case PARAM_NOISE_DECAY: activeSoundPreset.drum.noiseDecayMs = clampFloat(activeSoundPreset.drum.noiseDecayMs + direction * 5.0f, 1.0f, 30000.0f); break;
+    case PARAM_NOISE_LEVEL: activeSoundPreset.drum.noiseLevel = clampFloat(activeSoundPreset.drum.noiseLevel + direction * 0.02f, 0.0f, 1.0f); break;
+    case PARAM_TRANSIENT_TYPE: activeSoundPreset.drum.transientType = (uint8_t)wrapIndex((int)activeSoundPreset.drum.transientType + direction, DRUM_TRANSIENT_COUNT); break;
+    case PARAM_TRANSIENT_LEVEL: activeSoundPreset.drum.transientLevel = clampFloat(activeSoundPreset.drum.transientLevel + direction * 0.02f, 0.0f, 1.0f); break;
+    case PARAM_NOISE_BASE: activeSoundPreset.drum.noiseBaseHz = clampFloat(activeSoundPreset.drum.noiseBaseHz + direction * 100.0f, 20.0f, 18000.0f); break;
+    case PARAM_NOISE_WIDTH: activeSoundPreset.drum.noiseWidthHz = clampFloat(activeSoundPreset.drum.noiseWidthHz + direction * 100.0f, 20.0f, 18000.0f); break;
+    case PARAM_NOISE_RESET: activeSoundPreset.drum.noiseReset = !activeSoundPreset.drum.noiseReset; break;
+    case PARAM_NOISE_RINGMOD: activeSoundPreset.drum.noiseRingMod = !activeSoundPreset.drum.noiseRingMod; break;
     default: break;
   }
   markSoundEdited();
