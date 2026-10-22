@@ -17,9 +17,20 @@ static TaskHandle_t audioTaskHandle = nullptr;
 
 static void audioTask(void *parameter) {
   (void)parameter;
+  uint8_t blocksSinceYield = 0;
+
   for (;;) {
     if (audioReady) {
       processAudioBlock();
+
+      // The I2S write can return without blocking long enough to let IDLE0 run.
+      // Give the scheduler one tick periodically so the task watchdog is fed.
+      // Yield every four 128-frame blocks (~11.6 ms of audio), not every block,
+      // to limit the risk of starving the I2S DMA stream.
+      if (++blocksSinceYield >= 4) {
+        blocksSinceYield = 0;
+        vTaskDelay(1);
+      }
     } else {
       // Do not spin at full speed if I2S initialization failed.
       vTaskDelay(pdMS_TO_TICKS(10));
