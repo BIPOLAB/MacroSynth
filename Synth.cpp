@@ -10,7 +10,18 @@ float wrapPhase(float phase) {
   while (phase < 0.0f) phase += TWO_PI;
   return phase;
 }
-float fastSine(float phase) { return sinf(phase); }
+// Fast, bounded sine approximation for the per-sample drum path. Avoids the
+// high cost of libm fastSin() at every operator on the ESP32-S3.
+static inline float fastSin(float phase) {
+  const float turns = (float)((int)(phase / TWO_PI));
+  phase -= turns * TWO_PI;
+  if (phase > PI) phase -= TWO_PI;
+  else if (phase < -PI) phase += TWO_PI;
+  const float x2 = phase * phase;
+  return phase * (1.0f + x2 * (-0.1666666716f + x2 * (0.0083333477f +
+         x2 * (-0.0001984090f + x2 * 0.0000027526f))));
+}
+float fastSine(float phase) { return fastSin(phase); }
 float sawWave(float phase) { return (phase / PI) - 1.0f; }
 float squareWave(float phase, float pulseWidth = 0.5f) { return phase < TWO_PI * pulseWidth ? 1.0f : -1.0f; }
 float triangleWave(float phase) {
