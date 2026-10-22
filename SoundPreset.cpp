@@ -218,3 +218,30 @@ bool consumePendingSoundPreset(SoundPreset &preset) {
   portEXIT_CRITICAL(&presetSnapshotMux);
   return updated;
 }
+
+int getSoundPresetNames(char names[][BIPO_SOUND_NAME_LENGTH], int capacity) {
+  if (names == nullptr || capacity <= 0 || !ensureStorage()) return 0;
+  File directory = LittleFS.open(SOUND_DIRECTORY);
+  if (!directory || !directory.isDirectory()) return 0;
+  int count = 0;
+  File entry = directory.openNextFile();
+  while (entry && count < capacity) {
+    const char *fileName = entry.name();
+    const char *baseName = strrchr(fileName, '/');
+    baseName = baseName ? baseName + 1 : fileName;
+    const size_t length = strlen(baseName);
+    if (!entry.isDirectory() && length > 4 &&
+        strcmp(baseName + length - 4, ".bps") == 0) {
+      const size_t nameLength = length - 4;
+      if (nameLength > 0 && nameLength < BIPO_SOUND_NAME_LENGTH) {
+        memcpy(names[count], baseName, nameLength);
+        names[count][nameLength] = '\\0';
+        ++count;
+      }
+    }
+    entry.close();
+    entry = directory.openNextFile();
+  }
+  directory.close();
+  return count;
+}
