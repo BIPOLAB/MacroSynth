@@ -40,11 +40,19 @@ static float generateKickSample() {
 
   const float attackMs = activeSoundPreset.amplitudeEnvelope.attackMs;
   const float ampDecayMs = fmaxf(1.0f, activeSoundPreset.amplitudeEnvelope.decayMs);
-  if (ageMs < attackMs && attackMs > 0.0f) {
+  const float sustain = clampFloat(activeSoundPreset.amplitudeEnvelope.sustain, 0.0f, 1.0f);
+  const float decayEndMs = attackMs + ampDecayMs;
+  const float releaseMs = activeSoundPreset.amplitudeEnvelope.releaseMs;
+  if (attackMs > 0.0f && ageMs < attackMs) {
     kickAmplitude = ageMs / attackMs;
+  } else if (ageMs < decayEndMs) {
+    const float decayProgress = (ageMs - attackMs) / ampDecayMs;
+    kickAmplitude = 1.0f + (sustain - 1.0f) * decayProgress;
+  } else if (releaseMs > 0.0f && ageMs < decayEndMs + releaseMs) {
+    const float releaseProgress = (ageMs - decayEndMs) / releaseMs;
+    kickAmplitude = sustain * (1.0f - releaseProgress);
   } else {
-    const float decayAge = fmaxf(0.0f, ageMs - attackMs);
-    kickAmplitude = expf(-decayAge / ampDecayMs);
+    kickAmplitude = 0.0f;
   }
   if (kickAmplitude < 0.0001f) kickAmplitude = 0.0f;
   ++kickAgeSamples;
