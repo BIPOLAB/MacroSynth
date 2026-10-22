@@ -7,7 +7,7 @@ const char *engineDescriptions[ENGINE_COUNT] = {
   "Resonant modes", "Noise generator", "Chord oscillator", "Noise texture", "Kick with amp/pitch envelopes"
 };
 const char *mainMenuNames[4] = { "PLAY", "SOUND", "PRESETS", "SYSTEM" };
-const char *presetActionNames[PRESET_ACTION_COUNT] = { "LOAD", "SAVE", "SAVE AS", "DELETE", "CANCEL" };
+const char *presetActionNames[PRESET_ACTION_COUNT] = { "LOAD", "SAVE CURRENT", "SAVE AS", "DELETE", "CANCEL" };
 const char *parameterNames[PARAMETER_COUNT] = {
   "FREQUENCY", "BRIGHTNESS", "LEVEL", "AMP ATTACK", "AMP DECAY",
   "AMP SUSTAIN", "AMP RELEASE", "PITCH AMOUNT", "PITCH DECAY"
