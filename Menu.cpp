@@ -147,6 +147,7 @@ void changeParameter(int direction) {
       break;
     case PARAM_BRIGHTNESS:
       brightness = clampFloat(brightness + direction * 0.03f, 0.0f, 1.0f);
+      activeSoundPreset.drum.noiseBaseHz = clampFloat(activeSoundPreset.drum.noiseBaseHz + direction * 250.0f, 20.0f, 18000.0f);
       break;
     case PARAM_VOLUME:
       if (currentEngine == ENGINE_KICK) activeSoundPreset.level = clampFloat(activeSoundPreset.level + direction * 0.02f, 0.0f, 1.0f);
@@ -167,10 +168,12 @@ void changeParameter(int direction) {
     case PARAM_PITCH_AMOUNT:
       activeSoundPreset.pitchEnvelope.amountSemitones = clampFloat(activeSoundPreset.pitchEnvelope.amountSemitones + direction, -48.0f, 48.0f);
       activeSoundPreset.pitchEnvelope.enabled = true;
+      activeSoundPreset.drum.sweepDepthSemitones = clampFloat(activeSoundPreset.drum.sweepDepthSemitones + direction, -48.0f, 72.0f);
       break;
     case PARAM_PITCH_DECAY:
       activeSoundPreset.pitchEnvelope.decayMs = clampFloat(activeSoundPreset.pitchEnvelope.decayMs + direction, 0.0f, 10000.0f);
       activeSoundPreset.pitchEnvelope.enabled = true;
+      activeSoundPreset.drum.sweepTimeMs = clampFloat(activeSoundPreset.drum.sweepTimeMs + direction, 0.0f, 2000.0f);
       break;
     case PARAM_DRUM_MODEL: {
       const DrumModel nextModel = (DrumModel)wrapIndex((int)activeSoundPreset.drum.model + direction, DRUM_MODEL_COUNT);
@@ -242,7 +245,7 @@ void selectCurrentMenuItem() {
       screenState = SCREEN_EDIT_PARAMETER;
       break;
     case SCREEN_EDIT_PARAMETER:
-      screenState = SCREEN_PARAMETER_MENU;
+      kickTriggerRequested = true;
       break;
     case SCREEN_PRESET_BROWSER:
       openPresetActions();
