@@ -8,19 +8,19 @@
 - Presets are independent from future kits. A kit should eventually embed a copy of each assigned sound's parameter payload, plus per-track level, mute/solo, routing and effect sends. Editing a kit must not mutate the source sound bank.
 
 ## Current schema
-`SoundPreset` schema v1 stores:
+`SoundPreset` schema v2 stores:
 - Name (1–23 ASCII characters: letters, digits, underscore and hyphen).
 - Engine ID, frequency, brightness, level and modulation flag.
 - Amplitude envelope: attack, decay, sustain and release.
 - Pitch envelope: semitone amount, decay time and enable flag.
 - Drum engine: model, FM algorithm/waves/ratios/modulation, pitch sweep, feedback, wavefold, independent body/noise hold-decay-level controls, noise filter, transient and deterministic-noise options.
 
-BIPO Kick currently consumes frequency, level, amplitude contour and pitch envelope. Its amplitude envelope is one-shot: attack, decay toward sustain, then release to silence. There is no held gate for a kick voice. Other engines currently retain the shared legacy controls; their own complete engine-specific parameter sets are future work.
+BIPO DRUM consumes the layered drum parameters plus the one-shot amplitude contour. Body and noise use independent hold/decay envelopes, while the transient has its own short shape. The original legacy engines retain their shared controls; their own complete engine-specific parameter sets are future work.
 
 ## Persistence format
 - LittleFS directory: `/sounds`
 - Extension: `.bps`
-- Header: magic `BPS1`, schema version, payload byte count and FNV-1a checksum.
+- Header: magic `BPS2` for new schema-v2 files, schema version, payload byte count and FNV-1a checksum. Existing `BPS1` schema-v1 files are detected and migrated in RAM when loaded.
 - The payload is the fixed-width `SoundPreset` structure for the ESP32 firmware build.
 - A temporary file is written and flushed before it is renamed into place.
 - Loads reject unknown schema versions, unexpected payload sizes, trailing bytes, invalid ranges and checksum mismatches.
