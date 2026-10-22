@@ -1,16 +1,21 @@
 #include "State.h"
 const char *engineNames[ENGINE_COUNT] = {
-  "ANALOG", "FM", "WAVETABLE", "PLUCK", "MODAL", "NOISE", "CHORD", "TEXTURE", "BIPO KICK"
+  "ANALOG", "FM", "WAVETABLE", "PLUCK", "MODAL", "NOISE", "CHORD", "TEXTURE", "BIPO DRUM"
 };
 const char *engineDescriptions[ENGINE_COUNT] = {
   "Classic oscillator", "Frequency modulation", "Harmonic waveform", "Plucked string",
-  "Resonant modes", "Noise generator", "Chord oscillator", "Noise texture", "Kick with amp/pitch envelopes"
+  "Resonant modes", "Noise generator", "Chord oscillator", "Noise texture", "Layered FM body, noise and transient drum synth"
 };
 const char *mainMenuNames[4] = { "PLAY", "SOUND", "PRESETS", "SYSTEM" };
 const char *presetActionNames[PRESET_ACTION_COUNT] = { "LOAD", "SAVE CURRENT", "SAVE AS", "DELETE", "CANCEL" };
 const char *parameterNames[PARAMETER_COUNT] = {
   "FREQUENCY", "BRIGHTNESS", "LEVEL", "AMP ATTACK", "AMP DECAY",
-  "AMP SUSTAIN", "AMP RELEASE", "PITCH AMOUNT", "PITCH DECAY"
+  "AMP SUSTAIN", "AMP RELEASE", "PITCH AMOUNT", "PITCH DECAY",
+  "DRUM MODEL", "SWEEP TIME", "SWEEP DEPTH", "ALGORITHM", "BODY WAVE",
+  "RATIO A", "RATIO B", "MOD A", "MOD B", "FEEDBACK", "WAVEFOLD",
+  "BODY HOLD", "BODY DECAY", "BODY LEVEL", "NOISE HOLD", "NOISE DECAY",
+  "NOISE LEVEL", "TRANSIENT", "TRANSIENT LEVEL", "NOISE BASE", "NOISE WIDTH",
+  "NOISE RESET", "NOISE RINGMOD"
 };
 ScreenState screenState = SCREEN_MAIN;
 int currentEngine = ENGINE_KICK;
