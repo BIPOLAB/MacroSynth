@@ -52,3 +52,7 @@ bool saveSoundPreset(const SoundPreset &preset);
 bool loadSoundPreset(const char *name, SoundPreset &preset);
 bool deleteSoundPreset(const char *name);
 void listSoundPresets(Stream &output);
+
+// Publish UI edits as an atomic snapshot; audio consumes snapshots at block boundaries.
+void publishSoundPreset(const SoundPreset &preset);
+bool consumePendingSoundPreset(SoundPreset &preset);
