@@ -107,8 +107,8 @@ void drawParameterEdit() {
     case PARAM_AMP_DECAY: snprintf(value, sizeof(value), "%.1f ms", activeSoundPreset.amplitudeEnvelope.decayMs); break;
     case PARAM_AMP_SUSTAIN: snprintf(value, sizeof(value), "%d%%", (int)(activeSoundPreset.amplitudeEnvelope.sustain * 100.0f)); break;
     case PARAM_AMP_RELEASE: snprintf(value, sizeof(value), "%.1f ms", activeSoundPreset.amplitudeEnvelope.releaseMs); break;
-    case PARAM_PITCH_AMOUNT: snprintf(value, sizeof(value), "%.1f st", activeSoundPreset.pitchEnvelope.amountSemitones); break;
-    case PARAM_PITCH_DECAY: snprintf(value, sizeof(value), "%.1f ms", activeSoundPreset.pitchEnvelope.decayMs); break;
+    case PARAM_PITCH_AMOUNT: snprintf(value, sizeof(value), "%.1f st", activeSoundPreset.drum.sweepDepthSemitones); break;
+    case PARAM_PITCH_DECAY: snprintf(value, sizeof(value), "%.1f ms", activeSoundPreset.drum.sweepTimeMs); break;
     case PARAM_DRUM_MODEL: snprintf(value, sizeof(value), "%s", drumModelNames[activeSoundPreset.drum.model]); break;
     case PARAM_SWEEP_TIME: snprintf(value, sizeof(value), "%.1f ms", activeSoundPreset.drum.sweepTimeMs); break;
     case PARAM_SWEEP_DEPTH: snprintf(value, sizeof(value), "%.1f st", activeSoundPreset.drum.sweepDepthSemitones); break;
@@ -145,7 +145,7 @@ void drawParameterEdit() {
   tft.setCursor(22, 150);
   tft.print("TURN ENCODER TO CHANGE");
   tft.setCursor(22, 170);
-  tft.print("CLICK TO FINISH");
+  tft.print("CLICK: AUDITION");
   tft.setCursor(22, 190);
   tft.setTextColor(soundDirty ? UI_ACCENT : UI_GRAY, UI_BG);
   tft.print(soundDirty ? "UNSAVED CHANGES *" : "PRESET UNCHANGED");
