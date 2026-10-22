@@ -27,6 +27,7 @@ static void runTextCommand(char *line) {
     activeSoundPreset.level = currentEngine == ENGINE_KICK
         ? activeSoundPreset.level : masterVolume;
     activeSoundPreset.modulationEnabled = modulationEnabled;
+    publishSoundPreset(activeSoundPreset);
     if (saveSoundPreset(activeSoundPreset)) Serial.printf("Preset guardado: %s\n", name);
     else Serial.println("ERROR: no se pudo guardar. Usa nombre alfanumerico, _ o - (max. 23).");
   } else if (strncmp(line, "load ", 5) == 0 && sscanf(line + 5, "%23s", name) == 1) {
@@ -38,6 +39,7 @@ static void runTextCommand(char *line) {
       brightness = loaded.brightness;
       if (currentEngine != ENGINE_KICK) masterVolume = loaded.level;
       modulationEnabled = loaded.modulationEnabled;
+      publishSoundPreset(activeSoundPreset);
       Serial.printf("Preset cargado: %s\n", loaded.name);
       displayDirty = true;
     } else Serial.println("ERROR: preset no encontrado, corrupto o incompatible.");
@@ -52,30 +54,40 @@ static void runTextCommand(char *line) {
   } else if (strncmp(line, "env ", 4) == 0) {
     float a, d, s, r;
     if (sscanf(line + 4, "%f %f %f %f", &a, &d, &s, &r) == 4) {
-      activeSoundPreset.amplitudeEnvelope = {a, d, s, r};
-      if (validateSoundPreset(activeSoundPreset)) Serial.println("ADSR actualizado (usa :save NOMBRE para persistir).");
-      else Serial.println("ADSR fuera de rango; valores permitidos: A 0-10000ms, D 0-30000ms, S 0-1, R 0-30000ms.");
+      SoundPreset candidate = activeSoundPreset;
+      candidate.amplitudeEnvelope = {a, d, s, r};
+      if (validateSoundPreset(candidate)) {
+        activeSoundPreset = candidate;
+        publishSoundPreset(activeSoundPreset);
+        Serial.println("ADSR actualizado (usa :save NOMBRE para persistir).");
+      } else Serial.println("ADSR fuera de rango; valores permitidos: A 0-10000ms, D 0-30000ms, S 0-1, R 0-30000ms.");
     } else Serial.println("Uso: :env ATTACK_MS DECAY_MS SUSTAIN RELEASE_MS");
   } else if (strncmp(line, "pitch ", 6) == 0) {
     float amount, decay;
     if (sscanf(line + 6, "%f %f", &amount, &decay) == 2) {
-      activeSoundPreset.pitchEnvelope.amountSemitones = amount;
-      activeSoundPreset.pitchEnvelope.decayMs = decay;
-      activeSoundPreset.pitchEnvelope.enabled = true;
-      if (validateSoundPreset(activeSoundPreset)) Serial.println("Envolvente de tono actualizada (usa :save NOMBRE para persistir).");
-      else Serial.println("Envolvente de tono fuera de rango: cantidad -48..48 semitonos; decay 0..10000ms.");
+      SoundPreset candidate = activeSoundPreset;
+      candidate.pitchEnvelope.amountSemitones = amount;
+      candidate.pitchEnvelope.decayMs = decay;
+      candidate.pitchEnvelope.enabled = true;
+      if (validateSoundPreset(candidate)) {
+        activeSoundPreset = candidate;
+        publishSoundPreset(activeSoundPreset);
+        Serial.println("Envolvente de tono actualizada (usa :save NOMBRE para persistir).");
+      } else Serial.println("Envolvente de tono fuera de rango: cantidad -48..48 semitonos; decay 0..10000ms.");
     } else Serial.println("Uso: :pitch SEMITONOS DECAY_MS");
   } else if (strncmp(line, "freq ", 5) == 0) {
     float value;
     if (sscanf(line + 5, "%f", &value) == 1 && value >= 20.0f && value <= 8000.0f) {
       activeSoundPreset.frequencyHz = value;
       baseFrequency = value;
+      publishSoundPreset(activeSoundPreset);
       Serial.println("Frecuencia base actualizada.");
     } else Serial.println("Uso: :freq HZ (20..8000)");
   } else if (strncmp(line, "level ", 6) == 0) {
     float value;
     if (sscanf(line + 6, "%f", &value) == 1 && value >= 0.0f && value <= 1.0f) {
       activeSoundPreset.level = value;
+      publishSoundPreset(activeSoundPreset);
       if (currentEngine != ENGINE_KICK) masterVolume = value;
       Serial.println("Nivel actualizado.");
     } else Serial.println("Uso: :level 0..1");
