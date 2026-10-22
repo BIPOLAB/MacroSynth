@@ -18,7 +18,7 @@ Each audio block contains 128 stereo frames at 44.1 kHz (about 2.90 ms per block
 
 ## Concurrency caveat
 
-The UI and audio task currently access several shared DSP/control globals. ESP32 aligned scalar reads/writes are generally single-instruction, but that does not make multi-field updates transactional. A later DSP-state refactor should introduce a small parameter snapshot/command queue and keep oscillator/envelope/filter state exclusively owned by the audio task. Verify encoder parameter changes and engine switching on hardware; if artifacts remain while the display is idle, investigate these shared-state transitions and I2S buffer/driver configuration next.
+The UI and audio task still share legacy DSP/control globals, so encoder-driven changes to those fields can still produce artifacts and require a separate parameter snapshot/queue refactor. Sound presets are safer: UI edits publish a complete preset through a short FreeRTOS critical section, and the audio task consumes the pending snapshot at the start of an audio block. The active preset being edited is never read directly by the sample loop. This snapshot reduces preset-field tearing but does not make all legacy globals race-free. Verify encoder parameter changes and engine switching on hardware; if artifacts remain, investigate the remaining shared controls and I2S buffer/driver configuration.
 
 ## Engines
 
