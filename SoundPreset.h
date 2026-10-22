@@ -47,3 +47,8 @@ struct SoundPreset {
 // Initializes a useful kick preset with bounded, musical defaults.
 void makeDefaultKickPreset(SoundPreset &preset, const char *name = "BIPO_Kick_01");
 bool validateSoundPreset(const SoundPreset &preset);
+
+bool saveSoundPreset(const SoundPreset &preset);
+bool loadSoundPreset(const char *name, SoundPreset &preset);
+bool deleteSoundPreset(const char *name);
+void listSoundPresets(Stream &output);
