@@ -34,3 +34,12 @@ If the IDE reports missing headers, install Adafruit GFX and Adafruit ST7789; `E
 22. Load both presets and verify their parameters return. Reboot, load them again and verify persistence.
 23. Test save-current overwrite deliberately, delete a selected preset, and cancel out of every menu using long press.
 24. Repeat audio tests while editing parameters. The UI and serial debug paths are not proof of glitch-free DSP; listen for artifacts and report exact screen/action if one occurs.
+
+
+## BIPO DRUM layered DSP checks
+25. Confirm an existing BPS schema-v1 preset loads and retains its previous basic controls; saving it again writes schema v2.
+26. Open SOUND → PARAMETERS → DRUM MODEL. Cycle KICK, SNARE, CLOSED HAT, OPEN HAT, CLAP, TOM, RIM and METAL; each selection should load sensible starting values.
+27. While editing any parameter, use a short press to audition the current sound and a long press to return.
+28. For KICK/TOM, vary SWEEP TIME/DEPTH and BODY DECAY. For SNARE/CLAP, vary NOISE DECAY/LEVEL and TRANSIENT type/level. For hats, vary NOISE BASE/WIDTH and decay. For METAL/RIM, vary ratios, modulation, feedback and wavefold.
+29. Save each family under a different name with Save As, reboot, load again, and confirm parameters persist.
+30. Test at moderate headphone volume and listen for clicks, clipping, sustained DC-like tones, and I2S dropouts. The synthesis is a first DSP pass and requires listening tests; CI compilation does not establish audio quality.
