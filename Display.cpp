@@ -58,7 +58,7 @@ void drawMainScreen() {
 }
 
 void drawSoundMenu() {
-  const char *items[] = {"ENGINE", "PARAMETERS", "MODULATION", "TRIGGER", "BACK"};
+  const char *items[] = {"ENGINE", "PARAMETERS", "MODULATION", "TEST KICK", "BACK"};
   drawRows("SOUND", items, 5, menuSelection, "CLICK: SELECT   HOLD: BACK");
   tft.setTextSize(1);
   tft.setTextColor(UI_GRAY, UI_BG);
