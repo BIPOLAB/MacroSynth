@@ -69,13 +69,15 @@ static float drumTransient(float ageMs, DrumTransient type) {
   if (type == DRUM_TRANSIENT_NONE) return 0.0f;
   if (type == DRUM_TRANSIENT_CLICK) {
     if (ageMs > 3.0f) return 0.0f;
-    return drumNoise() * expf(-ageMs * 2.2f);
+    const float attack = fminf(1.0f, ageMs / 0.20f);
+    return drumNoise() * attack * expf(-ageMs * 2.2f);
   }
   if (type == DRUM_TRANSIENT_CRACK) {
     if (ageMs > 18.0f) return 0.0f;
     const float burst = (ageMs < 2.0f || (ageMs > 5.0f && ageMs < 7.0f) ||
                          (ageMs > 10.0f && ageMs < 11.5f)) ? 1.0f : 0.0f;
-    return drumNoise() * burst * expf(-ageMs * 0.08f);
+    const float attack = fminf(1.0f, ageMs / 0.20f);
+    return drumNoise() * burst * attack * expf(-ageMs * 0.08f);
   }
   if (ageMs > 35.0f) return 0.0f;
   return drumNoise() * expf(-ageMs * 0.13f);
@@ -149,6 +151,40 @@ static float generateKickSample() {
     body = fastSin(body * foldDrive);
   }
   body *= bodyEnv * d.bodyLevel;
+
+  // Family-specific excitation/partials: these are deliberately different
+  // synthesis paths, not just the same FM patch with different names.
+  switch (d.model) {
+    case DRUM_MODEL_SNARE:
+      // A short shell mode sits under the wire/noise layer.
+      body = body * 0.68f +
+             (fastSin(bodyPhaseA) * 0.20f + fastSin(bodyPhaseB) * 0.12f) *
+             bodyEnv * d.bodyLevel;
+      break;
+    case DRUM_MODEL_CLOSED_HAT:
+    case DRUM_MODEL_OPEN_HAT:
+    case DRUM_MODEL_METAL:
+      // Inharmonic operator blend creates a metallic bank; ratio caps above
+      // keep its upper partials from wrapping repeatedly above Nyquist.
+      body = (fastSin(bodyPhaseC) * 0.18f +
+              fastSin(bodyPhaseA) * 0.41f +
+              fastSin(bodyPhaseB) * 0.41f) * bodyEnv * d.bodyLevel;
+      break;
+    case DRUM_MODEL_RIM:
+      body = (fastSin(bodyPhaseC) * 0.25f +
+              fastSin(bodyPhaseA) * 0.45f +
+              fastSin(bodyPhaseB) * 0.30f) * bodyEnv * d.bodyLevel;
+      break;
+    case DRUM_MODEL_CLAP:
+      // Clap identity is mostly its staggered noise bursts, with only a small
+      // tonal shell to prevent the sound becoming an undifferentiated noise hit.
+      body *= 0.45f;
+      break;
+    case DRUM_MODEL_KICK:
+    case DRUM_MODEL_TOM:
+    default:
+      break;
+  }
 
   const float noise = drumNoise();
   const float baseCutoff = clampFloat(d.noiseBaseHz, 20.0f, 18000.0f);
