@@ -30,6 +30,7 @@ static void audioTask(void *parameter) {
 void setup() {
   Serial.begin(115200);
   makeDefaultKickPreset(activeSoundPreset);
+  publishSoundPreset(activeSoundPreset);
   Serial.println("BIPO Kick inicializado con preset de fabrica (aun no guardado).");
 
   pinMode(ENCODER_CLK, INPUT_PULLUP);
