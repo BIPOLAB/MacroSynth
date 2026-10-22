@@ -12,7 +12,8 @@
 - Name (1–23 ASCII characters: letters, digits, underscore and hyphen).
 - Engine ID, frequency, brightness, level and modulation flag.
 - Amplitude envelope: attack, decay, sustain and release.
-- Pitch envelope: semitone amount, decay time and enable flag.\n- Drum engine: model, FM algorithm/waves/ratios/modulation, pitch sweep, feedback, wavefold, independent body/noise hold-decay-level controls, noise filter, transient and deterministic-noise options.
+- Pitch envelope: semitone amount, decay time and enable flag.
+- Drum engine: model, FM algorithm/waves/ratios/modulation, pitch sweep, feedback, wavefold, independent body/noise hold-decay-level controls, noise filter, transient and deterministic-noise options.
 
 BIPO Kick currently consumes frequency, level, amplitude contour and pitch envelope. Its amplitude envelope is one-shot: attack, decay toward sustain, then release to silence. There is no held gate for a kick voice. Other engines currently retain the shared legacy controls; their own complete engine-specific parameter sets are future work.
 
@@ -27,7 +28,10 @@ BIPO Kick currently consumes frequency, level, amplitude contour and pitch envel
 
 This is a firmware-local binary format, not yet a portable desktop interchange format. Schema-v1 files are detected and migrated to v2 in RAM on load; the original file remains unchanged until saved again. New writes use the BPS2 header and the expanded payload.
 
-## On-device workflow\nThe TFT and encoder are the primary UI. Navigate to SOUND to edit the active sound, or PRESETS to load, save the current sound, create a Save As variant, or delete a stored preset. Save As automatically chooses a free suffixed name if the entered name already exists.\n\n## Serial workflow
+## On-device workflow
+The TFT and encoder are the primary UI. Navigate to SOUND to edit the active sound, or PRESETS to load, save the current sound, create a Save As variant, or delete a stored preset. Save As automatically chooses a free suffixed name if the entered name already exists.
+
+## Serial workflow
 Set Serial Monitor to 115200 baud with newline enabled:
 ```text
 :kick
