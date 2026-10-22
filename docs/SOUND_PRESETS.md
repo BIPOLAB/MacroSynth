@@ -27,7 +27,7 @@ BIPO Kick currently consumes frequency, level, amplitude contour and pitch envel
 
 This is a firmware-local binary format, not yet a portable desktop interchange format. If fields/layout change, bump the schema version and implement an explicit migration or reject the old file cleanly.
 
-## Serial workflow
+## On-device workflow\nThe TFT and encoder are the primary UI. Navigate to SOUND to edit the active sound, or PRESETS to load, save the current sound, create a Save As variant, or delete a stored preset. Save As automatically chooses a free suffixed name if the entered name already exists.\n\n## Serial workflow
 Set Serial Monitor to 115200 baud with newline enabled:
 ```text
 :kick
