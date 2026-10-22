@@ -27,6 +27,7 @@ extern bool lastButtonReading, stableButtonState;
 extern uint32_t lastButtonChange, buttonPressTime;
 extern bool longPressSent;
 extern SoundPreset activeSoundPreset;
+extern SoundPreset audioSoundPreset;
 extern volatile bool kickTriggerRequested;
 extern float kickPhase;
 extern uint32_t kickAgeSamples;
