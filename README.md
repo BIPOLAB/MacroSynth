@@ -51,7 +51,7 @@ Monitor serie a 115200 baudios. Los comandos existentes se mantienen para prueba
 | `Display.h/.cpp` | Interfaz ST7789 |
 | `SerialControl.h/.cpp` | Herramientas de diagnóstico |
 
-Consulta [pinout](docs/PINOUT.md), [arquitectura](docs/ARCHITECTURE.md), [modelo de presets](docs/SOUND_PRESETS.md) y [validación](docs/TESTING.md).
+Consulta [pinout](docs/PINOUT.md), [arquitectura](docs/ARCHITECTURE.md), [estudio y diseño BIPO DRUM](docs/BIPO_DRUM_ENGINE.md), [modelo de presets](docs/SOUND_PRESETS.md) y [validación](docs/TESTING.md).
 
 ## Estado
 Prototipo MK0. La interfaz autónoma de navegación y edición está implementada en firmware, pero necesita compilación y pruebas en la placa real. Aún no hay secuenciador de 16 pasos, kits completos, polifonía ni MIDI. BIPO DRUM ahora tiene parámetros propios para cuerpo FM, barrido de tono, ruido y transitorio; los parámetros específicos de los otros motores requieren desarrollo posterior. La síntesis percusiva necesita escucha y validación en la placa real.
