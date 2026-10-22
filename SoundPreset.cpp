@@ -235,7 +235,7 @@ int getSoundPresetNames(char names[][BIPO_SOUND_NAME_LENGTH], int capacity) {
       const size_t nameLength = length - 4;
       if (nameLength > 0 && nameLength < BIPO_SOUND_NAME_LENGTH) {
         memcpy(names[count], baseName, nameLength);
-        names[count][nameLength] = '\\0';
+        names[count][nameLength] = '\0';
         ++count;
       }
     }
