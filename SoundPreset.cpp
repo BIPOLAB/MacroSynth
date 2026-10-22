@@ -180,3 +180,31 @@ void listSoundPresets(Stream &output) {
   directory.close();
   if (!found) output.println("(sin presets)");
 }
+
+#include <freertos/FreeRTOS.h>
+#include <freertos/portmacro.h>
+
+namespace {
+portMUX_TYPE presetSnapshotMux = portMUX_INITIALIZER_UNLOCKED;
+SoundPreset pendingAudioPreset = {};
+bool pendingAudioPresetDirty = false;
+}
+
+void publishSoundPreset(const SoundPreset &preset) {
+  portENTER_CRITICAL(&presetSnapshotMux);
+  pendingAudioPreset = preset;
+  pendingAudioPresetDirty = true;
+  portEXIT_CRITICAL(&presetSnapshotMux);
+}
+
+bool consumePendingSoundPreset(SoundPreset &preset) {
+  bool updated = false;
+  portENTER_CRITICAL(&presetSnapshotMux);
+  if (pendingAudioPresetDirty) {
+    preset = pendingAudioPreset;
+    pendingAudioPresetDirty = false;
+    updated = true;
+  }
+  portEXIT_CRITICAL(&presetSnapshotMux);
+  return updated;
+}
