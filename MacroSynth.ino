@@ -89,7 +89,7 @@ void setup() {
     }
   }
 
-  printHelp();
+  Serial.println("UI lista: encoder para navegar, pulsacion corta para aceptar, pulsacion larga para volver.");
   displayDirty = true;
 }
 
