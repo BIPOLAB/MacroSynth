@@ -39,3 +39,4 @@ char presetNames[32][BIPO_SOUND_NAME_LENGTH] = {};
 int presetCount = 0;
 char editName[BIPO_SOUND_NAME_LENGTH] = {};
 int editNamePosition = 0, editCharIndex = 0;
+bool nameEditorSaveAs = false;
