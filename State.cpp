@@ -38,4 +38,4 @@ float kickAmplitude = 0.0f;
 char presetNames[32][BIPO_SOUND_NAME_LENGTH] = {};
 int presetCount = 0;
 char editName[BIPO_SOUND_NAME_LENGTH] = {};
-int editNamePosition = 0;
+int editNamePosition = 0, editCharIndex = 0;
