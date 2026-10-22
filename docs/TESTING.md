@@ -23,3 +23,14 @@ If the IDE reports missing headers, install Adafruit GFX and Adafruit ST7789; `E
 14. Power-cycle the board, send `:load BIPO_Kick_01`, then `:kick`; confirm the saved sound is restored.
 15. Test `:list` with no presets, with multiple presets, and after a failed LittleFS mount if that can be simulated safely. Confirm the firmware never formats LittleFS automatically.
 16. Repeat encoder and display tests while audio is playing. Preset snapshots reduce races for preset data only; shared legacy controls are still a known potential source of artifacts.
+
+
+## Standalone TFT interface checks
+17. Boot without opening Serial Monitor and confirm the main menu appears on the ST7789.
+18. Navigate PLAY / SOUND / PRESETS / SYSTEM using only the encoder; short press selects and long press returns.
+19. Open SOUND → PARAMETERS and edit frequency, level, amplitude ADSR and pitch envelope. Confirm values update on screen and the BIPO Kick sound responds.
+20. Open PRESETS with an empty filesystem, choose SAVE AS, enter a name with the encoder, and save. Confirm the preset appears in the browser.
+21. Change envelope values, use SAVE AS again, and confirm a distinct name is created without overwriting the original.
+22. Load both presets and verify their parameters return. Reboot, load them again and verify persistence.
+23. Test save-current overwrite deliberately, delete a selected preset, and cancel out of every menu using long press.
+24. Repeat audio tests while editing parameters. The UI and serial debug paths are not proof of glitch-free DSP; listen for artifacts and report exact screen/action if one occurs.
