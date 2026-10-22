@@ -32,17 +32,17 @@ static float generateKickSample() {
   }
   const float sr = (float)SAMPLE_RATE;
   const float ageMs = (1000.0f * (float)kickAgeSamples) / sr;
-  const float decayMs = fmaxf(1.0f, activeSoundPreset.pitchEnvelope.decayMs);
-  const float pitchAmount = activeSoundPreset.pitchEnvelope.enabled
-      ? activeSoundPreset.pitchEnvelope.amountSemitones * expf(-ageMs / decayMs) : 0.0f;
-  const float frequency = clampFloat(activeSoundPreset.frequencyHz * powf(2.0f, pitchAmount / 12.0f), 20.0f, 1200.0f);
+  const float decayMs = fmaxf(1.0f, audioSoundPreset.pitchEnvelope.decayMs);
+  const float pitchAmount = audioSoundPreset.pitchEnvelope.enabled
+      ? audioSoundPreset.pitchEnvelope.amountSemitones * expf(-ageMs / decayMs) : 0.0f;
+  const float frequency = clampFloat(audioSoundPreset.frequencyHz * powf(2.0f, pitchAmount / 12.0f), 20.0f, 1200.0f);
   kickPhase = wrapPhase(kickPhase + TWO_PI * frequency / sr);
 
-  const float attackMs = activeSoundPreset.amplitudeEnvelope.attackMs;
-  const float ampDecayMs = fmaxf(1.0f, activeSoundPreset.amplitudeEnvelope.decayMs);
-  const float sustain = clampFloat(activeSoundPreset.amplitudeEnvelope.sustain, 0.0f, 1.0f);
+  const float attackMs = audioSoundPreset.amplitudeEnvelope.attackMs;
+  const float ampDecayMs = fmaxf(1.0f, audioSoundPreset.amplitudeEnvelope.decayMs);
+  const float sustain = clampFloat(audioSoundPreset.amplitudeEnvelope.sustain, 0.0f, 1.0f);
   const float decayEndMs = attackMs + ampDecayMs;
-  const float releaseMs = activeSoundPreset.amplitudeEnvelope.releaseMs;
+  const float releaseMs = audioSoundPreset.amplitudeEnvelope.releaseMs;
   if (attackMs > 0.0f && ageMs < attackMs) {
     kickAmplitude = ageMs / attackMs;
   } else if (ageMs < decayEndMs) {
@@ -56,7 +56,7 @@ static float generateKickSample() {
   }
   if (kickAmplitude < 0.0001f) kickAmplitude = 0.0f;
   ++kickAgeSamples;
-  return sinf(kickPhase) * kickAmplitude * activeSoundPreset.level;
+  return sinf(kickPhase) * kickAmplitude * audioSoundPreset.level;
 }
 
 float generateSample() {
