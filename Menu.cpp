@@ -50,7 +50,31 @@ bool saveCurrentPreset() {
   return true;
 }
 
+bool presetNameExists(const char *name) {
+  refreshPresetNames();
+  for (int i = 0; i < presetCount; ++i) {
+    if (strcmp(presetNames[i], name) == 0) return true;
+  }
+  return false;
+}
+
+void makeUniqueSaveAsName(char *name, size_t capacity) {
+  if (!presetNameExists(name)) return;
+  char base[BIPO_SOUND_NAME_LENGTH] = {};
+  strncpy(base, name, sizeof(base) - 1);
+  for (int suffix = 2; suffix < 100; ++suffix) {
+    char candidate[BIPO_SOUND_NAME_LENGTH] = {};
+    snprintf(candidate, sizeof(candidate), "%.18s_%d", base, suffix);
+    if (!presetNameExists(candidate)) {
+      strncpy(name, candidate, capacity - 1);
+      name[capacity - 1] = '\\0';
+      return;
+    }
+  }
+}
+
 void beginSaveAs() {
+  nameEditorSaveAs = true;
   syncPresetFromControls();
   strncpy(editName, activeSoundPreset.name, sizeof(editName) - 1);
   editName[sizeof(editName) - 1] = '\\0';
@@ -65,9 +89,13 @@ void acceptNameCharacter() {
   if (editNamePosition >= BIPO_SOUND_NAME_LENGTH - 1) {
     editName[BIPO_SOUND_NAME_LENGTH - 1] = '\\0';
     if (editName[0] != '\\0') {
+      if (nameEditorSaveAs) makeUniqueSaveAsName(editName, sizeof(editName));
       strncpy(activeSoundPreset.name, editName, sizeof(activeSoundPreset.name) - 1);
       activeSoundPreset.name[sizeof(activeSoundPreset.name) - 1] = '\\0';
-      if (saveCurrentPreset()) screenState = SCREEN_PRESET_BROWSER;
+      if (saveCurrentPreset()) {
+        refreshPresetNames();
+        screenState = SCREEN_PRESET_BROWSER;
+      }
       else screenState = SCREEN_PRESET_ACTIONS;
     }
     return;
@@ -76,9 +104,13 @@ void acceptNameCharacter() {
   if (selected == ' ') {
     editName[editNamePosition] = '\\0';
     if (editName[0] != '\\0') {
+      if (nameEditorSaveAs) makeUniqueSaveAsName(editName, sizeof(editName));
       strncpy(activeSoundPreset.name, editName, sizeof(activeSoundPreset.name) - 1);
       activeSoundPreset.name[sizeof(activeSoundPreset.name) - 1] = '\\0';
-      if (saveCurrentPreset()) screenState = SCREEN_PRESET_BROWSER;
+      if (saveCurrentPreset()) {
+        refreshPresetNames();
+        screenState = SCREEN_PRESET_BROWSER;
+      }
       else screenState = SCREEN_PRESET_ACTIONS;
     }
     return;
