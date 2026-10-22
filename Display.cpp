@@ -57,11 +57,11 @@ void drawRows(const char *title, const char **items, int count, int selected, co
 
 void drawMainScreen() {
   const char *items[] = {"PLAY", "SOUND", "PRESETS", "SYSTEM"};
-  drawRows(soundDirty ? "MACROSYNTH *" : "MACROSYNTH", items, 4, menuSelection, "TURN: SELECT   CLICK: OPEN");
+  drawRows(soundDirty ? "MACROSYNTH *" : "MACROSYNTH", items, 4, menuSelection, "TURN: MOVE   CLICK: OPEN");
 }
 
 void drawSoundMenu() {
-  const char *items[] = {"ENGINE", "PARAMETERS", "MODULATION", "TEST KICK", "BACK"};
+  const char *items[] = {"ENGINE", "PARAMETERS", "MODULATION", "TEST DRUM", "BACK"};
   drawRows("SOUND", items, 5, menuSelection, "CLICK: SELECT   HOLD: BACK");
   tft.setTextSize(1);
   tft.setTextColor(UI_GRAY, UI_BG);
@@ -145,11 +145,11 @@ void drawParameterEdit() {
   tft.setCursor(22, 150);
   tft.print("TURN ENCODER TO CHANGE");
   tft.setCursor(22, 170);
-  tft.print("CLICK: AUDITION");
+  tft.print(currentEngine == ENGINE_KICK ? "CLICK: TRIGGER DRUM" : "EDIT VALUE WITH ENCODER");
   tft.setCursor(22, 190);
   tft.setTextColor(soundDirty ? UI_ACCENT : UI_GRAY, UI_BG);
   tft.print(soundDirty ? "UNSAVED CHANGES *" : "PRESET UNCHANGED");
-  drawFooter("HOLD: BACK TO PARAMETERS");
+  drawFooter("HOLD: BACK");
 }
 
 void drawPresetBrowser() {
@@ -171,7 +171,7 @@ void drawPresetBrowser() {
       drawMenuRow(42 + row * 42, presetNames[item], item == presetSelection);
     }
   }
-  drawFooter("CLICK: PRESET ACTIONS   HOLD: BACK");
+  drawFooter("CLICK: OPEN   HOLD: BACK TO MENU");
 }
 
 void drawPresetActions() {
