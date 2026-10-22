@@ -7,6 +7,9 @@
 Adafruit_ST7789 tft(TFT_CS, TFT_DC, TFT_RST);
 
 namespace {
+const char *drumModelNames[DRUM_MODEL_COUNT] = {"KICK", "SNARE", "CLOSED HAT", "OPEN HAT", "CLAP", "TOM", "RIM", "METAL"};
+const char *transientNames[DRUM_TRANSIENT_COUNT] = {"NONE", "CLICK", "NOISE", "CRACK"};
+const char *bodyWaveNames[4] = {"SINE", "SOFT", "ASYM", "FM"};
 void drawHeader(const char *title) {
   tft.fillRect(0, 0, 240, 34, UI_BG);
   tft.setTextSize(2);
@@ -106,6 +109,29 @@ void drawParameterEdit() {
     case PARAM_AMP_RELEASE: snprintf(value, sizeof(value), "%.1f ms", activeSoundPreset.amplitudeEnvelope.releaseMs); break;
     case PARAM_PITCH_AMOUNT: snprintf(value, sizeof(value), "%.1f st", activeSoundPreset.pitchEnvelope.amountSemitones); break;
     case PARAM_PITCH_DECAY: snprintf(value, sizeof(value), "%.1f ms", activeSoundPreset.pitchEnvelope.decayMs); break;
+    case PARAM_DRUM_MODEL: snprintf(value, sizeof(value), "%s", drumModelNames[activeSoundPreset.drum.model]); break;
+    case PARAM_SWEEP_TIME: snprintf(value, sizeof(value), "%.1f ms", activeSoundPreset.drum.sweepTimeMs); break;
+    case PARAM_SWEEP_DEPTH: snprintf(value, sizeof(value), "%.1f st", activeSoundPreset.drum.sweepDepthSemitones); break;
+    case PARAM_ALGORITHM: snprintf(value, sizeof(value), "%u", activeSoundPreset.drum.algorithm); break;
+    case PARAM_BODY_WAVE: snprintf(value, sizeof(value), "%s", bodyWaveNames[activeSoundPreset.drum.bodyWave]); break;
+    case PARAM_RATIO_A: snprintf(value, sizeof(value), "%.3f", activeSoundPreset.drum.ratioA); break;
+    case PARAM_RATIO_B: snprintf(value, sizeof(value), "%.3f", activeSoundPreset.drum.ratioB); break;
+    case PARAM_MOD_A: snprintf(value, sizeof(value), "%.2f", activeSoundPreset.drum.modulationA); break;
+    case PARAM_MOD_B: snprintf(value, sizeof(value), "%.2f", activeSoundPreset.drum.modulationB); break;
+    case PARAM_FEEDBACK: snprintf(value, sizeof(value), "%d%%", (int)(activeSoundPreset.drum.feedback * 100)); break;
+    case PARAM_WAVEFOLD: snprintf(value, sizeof(value), "%d%%", (int)(activeSoundPreset.drum.wavefold * 100)); break;
+    case PARAM_BODY_HOLD: snprintf(value, sizeof(value), "%.1f ms", activeSoundPreset.drum.bodyHoldMs); break;
+    case PARAM_BODY_DECAY: snprintf(value, sizeof(value), "%.1f ms", activeSoundPreset.drum.bodyDecayMs); break;
+    case PARAM_BODY_LEVEL: snprintf(value, sizeof(value), "%d%%", (int)(activeSoundPreset.drum.bodyLevel * 100)); break;
+    case PARAM_NOISE_HOLD: snprintf(value, sizeof(value), "%.1f ms", activeSoundPreset.drum.noiseHoldMs); break;
+    case PARAM_NOISE_DECAY: snprintf(value, sizeof(value), "%.1f ms", activeSoundPreset.drum.noiseDecayMs); break;
+    case PARAM_NOISE_LEVEL: snprintf(value, sizeof(value), "%d%%", (int)(activeSoundPreset.drum.noiseLevel * 100)); break;
+    case PARAM_TRANSIENT_TYPE: snprintf(value, sizeof(value), "%s", transientNames[activeSoundPreset.drum.transientType]); break;
+    case PARAM_TRANSIENT_LEVEL: snprintf(value, sizeof(value), "%d%%", (int)(activeSoundPreset.drum.transientLevel * 100)); break;
+    case PARAM_NOISE_BASE: snprintf(value, sizeof(value), "%.0f Hz", activeSoundPreset.drum.noiseBaseHz); break;
+    case PARAM_NOISE_WIDTH: snprintf(value, sizeof(value), "%.0f Hz", activeSoundPreset.drum.noiseWidthHz); break;
+    case PARAM_NOISE_RESET: snprintf(value, sizeof(value), "%s", activeSoundPreset.drum.noiseReset ? "ON" : "OFF"); break;
+    case PARAM_NOISE_RINGMOD: snprintf(value, sizeof(value), "%s", activeSoundPreset.drum.noiseRingMod ? "ON" : "OFF"); break;
     default: snprintf(value, sizeof(value), "--"); break;
   }
   tft.setTextSize(3);
