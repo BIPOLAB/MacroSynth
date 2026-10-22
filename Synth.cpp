@@ -11,7 +11,7 @@ float wrapPhase(float phase) {
   return phase;
 }
 // Fast, bounded sine approximation for the per-sample drum path. Avoids the
-// high cost of libm fastSin() at every operator on the ESP32-S3.
+// high cost of libm sinf() at every operator on the ESP32-S3.
 static inline float fastSin(float phase) {
   const float turns = (float)((int)(phase / TWO_PI));
   phase -= turns * TWO_PI;
@@ -39,6 +39,18 @@ static float bodyPhaseA = 0.0f;
 static float bodyPhaseB = 0.0f;
 static float noiseLowState = 0.0f;
 static float noiseBaseState = 0.0f;
+static float bodyEnvelopeState = 1.0f;
+static float noiseEnvelopeState = 1.0f;
+static float modAEnvelopeState = 1.0f;
+static float modBEnvelopeState = 1.0f;
+static float sweepEnvelopeState = 1.0f;
+static float bodyDecayCoeff = 1.0f;
+static float noiseDecayCoeff = 1.0f;
+static float modADecayCoeff = 1.0f;
+static float modBDecayCoeff = 1.0f;
+static float sweepDecayCoeff = 1.0f;
+static float noiseBaseCoeff = 0.0f;
+static float noiseWidthCoeff = 0.0f;
 static uint32_t drumNoiseState = 0xA341316Cu;
 
 static float drumNoise() {
@@ -77,14 +89,26 @@ static float generateKickSample() {
     kickPhase = 0.0f;
     bodyPhaseC = bodyPhaseA = bodyPhaseB = 0.0f;
     noiseLowState = noiseBaseState = 0.0f;
-    drumNoiseState = audioSoundPreset.drum.noiseReset ? 0xA341316Cu : (drumNoiseState + 0x9E3779B9u);
+    bodyEnvelopeState = noiseEnvelopeState = 1.0f;
+    modAEnvelopeState = modBEnvelopeState = sweepEnvelopeState = 1.0f;
+    const DrumParameters &triggerParams = audioSoundPreset.drum;
+    const float triggerSr = (float)SAMPLE_RATE;
+    bodyDecayCoeff = expf(-1000.0f / (triggerSr * fmaxf(1.0f, triggerParams.bodyDecayMs)));
+    noiseDecayCoeff = expf(-1000.0f / (triggerSr * fmaxf(1.0f, triggerParams.noiseDecayMs)));
+    modADecayCoeff = expf(-1000.0f / (triggerSr * fmaxf(1.0f, triggerParams.bodyDecayMs * 0.45f)));
+    modBDecayCoeff = expf(-1000.0f / (triggerSr * fmaxf(1.0f, triggerParams.bodyDecayMs * 0.72f)));
+    sweepDecayCoeff = triggerParams.sweepTimeMs > 0.1f
+        ? expf(-1000.0f / (triggerSr * triggerParams.sweepTimeMs)) : 0.0f;
+    noiseBaseCoeff = 1.0f - expf(-TWO_PI * clampFloat(triggerParams.noiseBaseHz, 20.0f, 18000.0f) / triggerSr);
+    noiseWidthCoeff = 1.0f - expf(-TWO_PI * clampFloat(triggerParams.noiseWidthHz, 20.0f, 18000.0f) / triggerSr);
+    drumNoiseState = triggerParams.noiseReset ? 0xA341316Cu : (drumNoiseState + 0x9E3779B9u);
   }
 
   const DrumParameters &d = audioSoundPreset.drum;
   const float sr = (float)SAMPLE_RATE;
   const float ageMs = (1000.0f * (float)kickAgeSamples) / sr;
-  const float sweep = d.sweepTimeMs > 0.1f
-      ? expf(-ageMs / d.sweepTimeMs) : 0.0f;
+  const float sweep = sweepEnvelopeState;
+  sweepEnvelopeState *= sweepDecayCoeff;
   const float pitchSemitones = d.sweepDepthSemitones * sweep;
   const float frequency = clampFloat(audioSoundPreset.frequencyHz * powf(2.0f, pitchSemitones / 12.0f), 20.0f, 15000.0f);
 
@@ -95,9 +119,14 @@ static float generateKickSample() {
   bodyPhaseA = wrapPhase(bodyPhaseA + TWO_PI * freqA / sr);
   bodyPhaseB = wrapPhase(bodyPhaseB + TWO_PI * freqB / sr);
 
-  const float bodyEnv = oneShotEnvelope(ageMs, d.bodyHoldMs, d.bodyDecayMs);
-  const float modAEnv = expf(-ageMs / fmaxf(1.0f, d.bodyDecayMs * 0.45f));
-  const float modBEnv = expf(-ageMs / fmaxf(1.0f, d.bodyDecayMs * 0.72f));
+  if (ageMs >= d.bodyHoldMs) bodyEnvelopeState *= bodyDecayCoeff;
+  if (ageMs >= 0.0f) {
+    modAEnvelopeState *= modADecayCoeff;
+    modBEnvelopeState *= modBDecayCoeff;
+  }
+  const float bodyEnv = ageMs < d.bodyHoldMs ? 1.0f : bodyEnvelopeState;
+  const float modAEnv = modAEnvelopeState;
+  const float modBEnv = modBEnvelopeState;
   const float opA = fastSin(bodyPhaseA + fastSin(bodyPhaseB) * d.modulationB * modBEnv);
   const float opB = fastSin(bodyPhaseB) * d.modulationB * modBEnv;
   float bodyPhaseMod = 0.0f;
@@ -124,12 +153,12 @@ static float generateKickSample() {
   const float noise = drumNoise();
   const float baseCutoff = clampFloat(d.noiseBaseHz, 20.0f, 18000.0f);
   const float widthCutoff = clampFloat(d.noiseWidthHz, 20.0f, 18000.0f);
-  const float baseCoeff = 1.0f - expf(-TWO_PI * baseCutoff / sr);
-  const float widthCoeff = 1.0f - expf(-TWO_PI * widthCutoff / sr);
-  noiseBaseState += (noise - noiseBaseState) * baseCoeff;
+  noiseBaseState += (noise - noiseBaseState) * noiseBaseCoeff;
   const float highPassed = noise - noiseBaseState;
-  noiseLowState += (highPassed - noiseLowState) * widthCoeff;
-  float noiseLayer = noiseLowState * oneShotEnvelope(ageMs, d.noiseHoldMs, d.noiseDecayMs) * d.noiseLevel;
+  noiseLowState += (highPassed - noiseLowState) * noiseWidthCoeff;
+  if (ageMs >= d.noiseHoldMs) noiseEnvelopeState *= noiseDecayCoeff;
+  const float noiseEnv = ageMs < d.noiseHoldMs ? 1.0f : noiseEnvelopeState;
+  float noiseLayer = noiseLowState * noiseEnv * d.noiseLevel;
   if (d.noiseRingMod) noiseLayer *= (0.25f + 0.75f * fabsf(fastSin(bodyPhaseC)));
 
   float transient = drumTransient(ageMs, (DrumTransient)d.transientType) * d.transientLevel;
