@@ -99,6 +99,53 @@ void makeDefaultDrumPreset(SoundPreset &preset, DrumModel model, const char *nam
     case DRUM_MODEL_METAL: preset.frequencyHz = 420.0f; preset.drum.sweepDepthSemitones = 0.0f; preset.drum.bodyDecayMs = 560.0f; preset.drum.ratioA = 1.414f; preset.drum.ratioB = 2.73f; preset.drum.modulationA = 3.2f; preset.drum.modulationB = 2.4f; preset.drum.feedback = 0.45f; preset.drum.wavefold = 0.25f; preset.drum.noiseLevel = 0.18f; preset.drum.transientType = DRUM_TRANSIENT_NONE; break;
     default: break;
   }
+
+  // Give each drum family an appropriate master envelope as well as its
+  // internal body/noise envelopes. The previous shared 180 ms envelope
+  // unintentionally truncated open hats and metallic tails.
+  switch (model) {
+    case DRUM_MODEL_KICK:
+      preset.amplitudeEnvelope = {0.2f, 220.0f, 0.0f, 12.0f};
+      break;
+    case DRUM_MODEL_SNARE:
+      preset.amplitudeEnvelope = {0.1f, 190.0f, 0.0f, 12.0f};
+      preset.drum.ratioA = 1.41f;
+      preset.drum.ratioB = 2.17f;
+      break;
+    case DRUM_MODEL_CLOSED_HAT:
+      preset.amplitudeEnvelope = {0.1f, 55.0f, 0.0f, 8.0f};
+      preset.drum.ratioA = 1.414f;
+      preset.drum.ratioB = 2.73f;
+      preset.drum.algorithm = 7;
+      preset.drum.modulationA = 1.7f;
+      preset.drum.modulationB = 1.2f;
+      preset.drum.feedback = 0.05f;
+      preset.drum.wavefold = 0.08f;
+      break;
+    case DRUM_MODEL_OPEN_HAT:
+      preset.amplitudeEnvelope = {0.1f, 480.0f, 0.0f, 15.0f};
+      preset.drum.ratioA = 1.414f;
+      preset.drum.ratioB = 2.73f;
+      preset.drum.algorithm = 7;
+      preset.drum.modulationA = 1.7f;
+      preset.drum.modulationB = 1.2f;
+      preset.drum.feedback = 0.05f;
+      preset.drum.wavefold = 0.08f;
+      break;
+    case DRUM_MODEL_CLAP:
+      preset.amplitudeEnvelope = {0.1f, 260.0f, 0.0f, 12.0f};
+      break;
+    case DRUM_MODEL_TOM:
+      preset.amplitudeEnvelope = {0.2f, 320.0f, 0.0f, 12.0f};
+      break;
+    case DRUM_MODEL_RIM:
+      preset.amplitudeEnvelope = {0.1f, 95.0f, 0.0f, 8.0f};
+      break;
+    case DRUM_MODEL_METAL:
+      preset.amplitudeEnvelope = {0.1f, 650.0f, 0.0f, 20.0f};
+      break;
+    default: break;
+  }
 }
 
 bool validateSoundPreset(const SoundPreset &preset) {
