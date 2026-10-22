@@ -7,7 +7,19 @@
 
 namespace {
 constexpr char SOUND_DIRECTORY[] = "/sounds";
-constexpr char FILE_MAGIC[4] = {'B', 'P', 'S', '1'};
+constexpr char FILE_MAGIC_V1[4] = {'B', 'P', 'S', '1'};
+constexpr char FILE_MAGIC_V2[4] = {'B', 'P', 'S', '2'};
+struct LegacySoundPresetV1 {
+  uint16_t schemaVersion;
+  char name[BIPO_SOUND_NAME_LENGTH];
+  SoundEngineId engine;
+  float frequencyHz;
+  float brightness;
+  float level;
+  bool modulationEnabled;
+  EnvelopeParameters amplitudeEnvelope;
+  PitchEnvelopeParameters pitchEnvelope;
+};
 
 struct DiskHeader {
   char magic[4];
@@ -71,6 +83,22 @@ void makeDefaultKickPreset(SoundPreset &preset, const char *name) {
   preset.modulationEnabled = false;
   preset.amplitudeEnvelope = {0.5f, 180.0f, 0.0f, 30.0f};
   preset.pitchEnvelope = {30.0f, 45.0f, true};
+  preset.drum = {DRUM_MODEL_KICK, 0, 0, DRUM_TRANSIENT_CLICK, 28.0f, 36.0f, 1.0f, 2.0f, 1.8f, 0.7f, 0.08f, 0.0f, 0.0f, 220.0f, 0.9f, 0.0f, 35.0f, 0.12f, 0.18f, 1800.0f, 4200.0f, true, false};
+}
+
+void makeDefaultDrumPreset(SoundPreset &preset, DrumModel model, const char *name) {
+  makeDefaultKickPreset(preset, name ? name : "BIPO_Drum_01");
+  preset.drum.model = model;
+  switch (model) {
+    case DRUM_MODEL_SNARE: preset.frequencyHz = 185.0f; preset.drum.sweepDepthSemitones = 8.0f; preset.drum.bodyDecayMs = 130.0f; preset.drum.noiseDecayMs = 170.0f; preset.drum.noiseLevel = 0.75f; preset.drum.transientType = DRUM_TRANSIENT_CRACK; preset.drum.transientLevel = 0.5f; break;
+    case DRUM_MODEL_CLOSED_HAT: preset.frequencyHz = 6800.0f; preset.drum.bodyLevel = 0.28f; preset.drum.bodyDecayMs = 45.0f; preset.drum.noiseDecayMs = 42.0f; preset.drum.noiseLevel = 0.85f; preset.drum.noiseBaseHz = 6500.0f; preset.drum.noiseWidthHz = 9000.0f; preset.drum.transientType = DRUM_TRANSIENT_CLICK; preset.drum.transientLevel = 0.35f; break;
+    case DRUM_MODEL_OPEN_HAT: preset.frequencyHz = 6200.0f; preset.drum.bodyLevel = 0.22f; preset.drum.bodyDecayMs = 180.0f; preset.drum.noiseDecayMs = 420.0f; preset.drum.noiseLevel = 0.9f; preset.drum.noiseBaseHz = 5200.0f; preset.drum.noiseWidthHz = 10000.0f; preset.drum.transientType = DRUM_TRANSIENT_CLICK; preset.drum.transientLevel = 0.25f; break;
+    case DRUM_MODEL_CLAP: preset.frequencyHz = 900.0f; preset.drum.bodyLevel = 0.08f; preset.drum.bodyDecayMs = 80.0f; preset.drum.noiseDecayMs = 230.0f; preset.drum.noiseLevel = 0.8f; preset.drum.transientType = DRUM_TRANSIENT_CRACK; preset.drum.transientLevel = 0.9f; break;
+    case DRUM_MODEL_TOM: preset.frequencyHz = 120.0f; preset.drum.sweepDepthSemitones = 18.0f; preset.drum.bodyDecayMs = 280.0f; preset.drum.noiseLevel = 0.08f; preset.drum.transientType = DRUM_TRANSIENT_NONE; preset.drum.transientLevel = 0.0f; break;
+    case DRUM_MODEL_RIM: preset.frequencyHz = 740.0f; preset.drum.sweepDepthSemitones = 2.0f; preset.drum.bodyDecayMs = 55.0f; preset.drum.ratioA = 1.414f; preset.drum.ratioB = 2.73f; preset.drum.feedback = 0.28f; preset.drum.noiseLevel = 0.14f; preset.drum.transientType = DRUM_TRANSIENT_CLICK; break;
+    case DRUM_MODEL_METAL: preset.frequencyHz = 420.0f; preset.drum.sweepDepthSemitones = 0.0f; preset.drum.bodyDecayMs = 560.0f; preset.drum.ratioA = 1.414f; preset.drum.ratioB = 2.73f; preset.drum.modulationA = 3.2f; preset.drum.modulationB = 2.4f; preset.drum.feedback = 0.45f; preset.drum.wavefold = 0.25f; preset.drum.noiseLevel = 0.18f; preset.drum.transientType = DRUM_TRANSIENT_NONE; break;
+    default: break;
+  }
 }
 
 bool validateSoundPreset(const SoundPreset &preset) {
@@ -86,6 +114,9 @@ bool validateSoundPreset(const SoundPreset &preset) {
   if (!finiteRange(preset.amplitudeEnvelope.releaseMs, 0.0f, 30000.0f)) return false;
   if (!finiteRange(preset.pitchEnvelope.amountSemitones, -48.0f, 48.0f)) return false;
   if (!finiteRange(preset.pitchEnvelope.decayMs, 0.0f, 10000.0f)) return false;
+  const DrumParameters &d = preset.drum;
+  if (d.model >= DRUM_MODEL_COUNT || d.algorithm > 7 || d.bodyWave > 3 || d.transientType >= DRUM_TRANSIENT_COUNT) return false;
+  if (!finiteRange(d.sweepTimeMs, 0.0f, 2000.0f) || !finiteRange(d.sweepDepthSemitones, -48.0f, 72.0f) || !finiteRange(d.ratioA, 0.125f, 32.0f) || !finiteRange(d.ratioB, 0.125f, 32.0f) || !finiteRange(d.modulationA, 0.0f, 12.0f) || !finiteRange(d.modulationB, 0.0f, 12.0f) || !finiteRange(d.feedback, 0.0f, 1.0f) || !finiteRange(d.wavefold, 0.0f, 1.0f) || !finiteRange(d.bodyHoldMs, 0.0f, 5000.0f) || !finiteRange(d.bodyDecayMs, 1.0f, 30000.0f) || !finiteRange(d.bodyLevel, 0.0f, 1.0f) || !finiteRange(d.noiseHoldMs, 0.0f, 5000.0f) || !finiteRange(d.noiseDecayMs, 1.0f, 30000.0f) || !finiteRange(d.noiseLevel, 0.0f, 1.0f) || !finiteRange(d.transientLevel, 0.0f, 1.0f) || !finiteRange(d.noiseBaseHz, 20.0f, 18000.0f) || !finiteRange(d.noiseWidthHz, 20.0f, 18000.0f)) return false;
   return true;
 }
 
@@ -98,7 +129,7 @@ bool saveSoundPreset(const SoundPreset &preset) {
   const String backupPath = String(path) + ".bak";
 
   DiskHeader header;
-  memcpy(header.magic, FILE_MAGIC, sizeof(FILE_MAGIC));
+  memcpy(header.magic, FILE_MAGIC_V2, sizeof(FILE_MAGIC_V2));
   header.schemaVersion = BIPO_SOUND_SCHEMA_VERSION;
   header.payloadSize = sizeof(SoundPreset);
   header.checksum = checksumBytes(reinterpret_cast<const uint8_t *>(&preset), sizeof(preset));
@@ -134,27 +165,26 @@ bool saveSoundPreset(const SoundPreset &preset) {
 
 bool loadSoundPreset(const char *name, SoundPreset &preset) {
   if (!validName(name) || !ensureStorage()) return false;
-  char path[48];
-  makePath(path, sizeof(path), name);
-  File file = LittleFS.open(path, "r");
-  if (!file) return false;
-
+  char path[48]; makePath(path, sizeof(path), name);
+  File file = LittleFS.open(path, "r"); if (!file) return false;
   DiskHeader header = {};
+  if (file.read(reinterpret_cast<uint8_t *>(&header), sizeof(header)) != sizeof(header)) { file.close(); return false; }
+  if (header.schemaVersion == 1 && memcmp(header.magic, FILE_MAGIC_V1, 4) == 0 && header.payloadSize == sizeof(LegacySoundPresetV1)) {
+    LegacySoundPresetV1 old = {};
+    const bool readOK = file.read(reinterpret_cast<uint8_t *>(&old), sizeof(old)) == sizeof(old);
+    const bool noExtra = file.available() == 0; file.close();
+    if (!readOK || !noExtra || header.checksum != checksumBytes(reinterpret_cast<const uint8_t *>(&old), sizeof(old)) || old.schemaVersion != 1 || !validName(old.name) || strncmp(old.name, name, sizeof(old.name)) != 0) return false;
+    makeDefaultKickPreset(preset, old.name);
+    preset.engine = old.engine; preset.frequencyHz = old.frequencyHz; preset.brightness = old.brightness; preset.level = old.level; preset.modulationEnabled = old.modulationEnabled; preset.amplitudeEnvelope = old.amplitudeEnvelope; preset.pitchEnvelope = old.pitchEnvelope;
+    return validateSoundPreset(preset);
+  }
   SoundPreset candidate = {};
-  const bool headerRead = file.read(reinterpret_cast<uint8_t *>(&header), sizeof(header)) == sizeof(header);
-  const bool payloadRead = file.read(reinterpret_cast<uint8_t *>(&candidate), sizeof(candidate)) == sizeof(candidate);
-  const bool noExtraData = file.available() == 0;
-  file.close();
-
-  if (!headerRead || !payloadRead || !noExtraData) return false;
-  if (memcmp(header.magic, FILE_MAGIC, sizeof(FILE_MAGIC)) != 0) return false;
-  if (header.schemaVersion != BIPO_SOUND_SCHEMA_VERSION ||
-      header.payloadSize != sizeof(SoundPreset)) return false;
+  const bool readOK = file.read(reinterpret_cast<uint8_t *>(&candidate), sizeof(candidate)) == sizeof(candidate);
+  const bool noExtra = file.available() == 0; file.close();
+  if (!readOK || !noExtra || memcmp(header.magic, FILE_MAGIC_V2, 4) != 0 || header.schemaVersion != BIPO_SOUND_SCHEMA_VERSION || header.payloadSize != sizeof(SoundPreset)) return false;
   if (header.checksum != checksumBytes(reinterpret_cast<const uint8_t *>(&candidate), sizeof(candidate))) return false;
   if (!validateSoundPreset(candidate) || strncmp(candidate.name, name, sizeof(candidate.name)) != 0) return false;
-
-  preset = candidate;
-  return true;
+  preset = candidate; return true;
 }
 
 bool deleteSoundPreset(const char *name) {
