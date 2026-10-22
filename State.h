@@ -48,3 +48,4 @@ extern char presetNames[32][BIPO_SOUND_NAME_LENGTH];
 extern int presetCount;
 extern char editName[BIPO_SOUND_NAME_LENGTH];
 extern int editNamePosition, editCharIndex;
+extern bool nameEditorSaveAs;
