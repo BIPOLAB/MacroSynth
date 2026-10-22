@@ -7,7 +7,9 @@ void processAudioBlock() {
   for (int i = 0; i < AUDIO_FRAMES; i++) {
     float sample = generateSample();
 
-    sample *= masterVolume;
+    // The BIPO Drum voice applies its per-sound level internally; other legacy
+    // engines continue to use the global output level.
+    if (currentEngine != ENGINE_KICK) sample *= masterVolume;
     sample = clampFloat(sample, -1.0f, 1.0f);
 
     int16_t output = (int16_t)(sample * 32767.0f);
