@@ -56,3 +56,6 @@ void listSoundPresets(Stream &output);
 // Publish UI edits as an atomic snapshot; audio consumes snapshots at block boundaries.
 void publishSoundPreset(const SoundPreset &preset);
 bool consumePendingSoundPreset(SoundPreset &preset);
+
+// Fill a caller-owned list with up to capacity preset names.
+int getSoundPresetNames(char names[][BIPO_SOUND_NAME_LENGTH], int capacity);
