@@ -12,3 +12,14 @@ The audio/UI separation has been committed, but it has **not yet been compiled o
 8. Verify no pin conflicts with the board's PSRAM.
 
 If the IDE reports missing headers, install Adafruit GFX and Adafruit ST7789; `ESP_I2S.h` requires a compatible ESP32 Arduino core. A successful compile is necessary but not a substitute for the hardware audio test.
+
+
+## Sound preset / BIPO Kick checks
+9. Send `:help` and confirm the preset commands are listed.
+10. Send `:kick` and confirm a short kick transient is audible.
+11. Send `:env 1 180 0 30`, `:pitch 30 45`, `:freq 55`, then `:save BIPO_Kick_01`.
+12. Change the envelope and pitch, save as `:save BIPO_Kick_02`, and verify the first file is still listed separately.
+13. Load each preset and listen for the expected difference. Confirm invalid values are rejected without replacing the active valid envelope.
+14. Power-cycle the board, send `:load BIPO_Kick_01`, then `:kick`; confirm the saved sound is restored.
+15. Test `:list` with no presets, with multiple presets, and after a failed LittleFS mount if that can be simulated safely. Confirm the firmware never formats LittleFS automatically.
+16. Repeat encoder and display tests while audio is playing. Preset snapshots reduce races for preset data only; shared legacy controls are still a known potential source of artifacts.
