@@ -179,13 +179,14 @@ void drawNameEditor() {
   tft.print("TURN: CHANGE CHARACTER");
   tft.setCursor(12, 72);
   tft.print("CLICK: ACCEPT CHARACTER");
+  const int nameStart = editNamePosition >= 18 ? editNamePosition - 17 : 0;
   tft.setTextSize(2);
   tft.setTextColor(UI_WHITE, UI_BG);
   tft.setCursor(12, 112);
-  tft.print(editName);
+  tft.print(editName + nameStart);
   tft.setTextColor(UI_ACCENT, UI_BG);
   const char current = " ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-"[editCharIndex];
-  tft.setCursor(12 + (editNamePosition * 12), 145);
+  tft.setCursor(12 + ((editNamePosition - nameStart) * 12), 145);
   tft.print(current == ' ' ? '_' : current);
   tft.setTextSize(1);
   tft.setTextColor(UI_GRAY, UI_BG);
