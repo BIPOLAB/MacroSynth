@@ -1,7 +1,9 @@
 #include "Audio.h"
 #include "Synth.h"
+#include "SoundPreset.h"
 I2SClass I2S;
 void processAudioBlock() {
+  consumePendingSoundPreset(audioSoundPreset);
   for (int i = 0; i < AUDIO_FRAMES; i++) {
     float sample = generateSample();
 
