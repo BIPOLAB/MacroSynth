@@ -116,7 +116,6 @@ void acceptNameCharacter() {
     return;
   }
   editName[editNamePosition] = selected;
-  if (editNamePosition + 1 < BIPO_SOUND_NAME_LENGTH) editName[editNamePosition + 1] = '\0';
   ++editNamePosition;
   const char *found = strchr(NAME_CHARSET, editName[editNamePosition]);
   editCharIndex = found ? (int)(found - NAME_CHARSET) : 1;
