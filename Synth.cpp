@@ -221,7 +221,7 @@ static float generateKickSample() {
 
 float generateSample() {
   const float sampleRate = (float)SAMPLE_RATE;
-  if (currentEngine == ENGINE_KICK) return normalizeSample(generateKickSample());
+  if (currentEngine == ENGINE_KICK) return generateKickSample();
   float frequency = baseFrequency;
   if (modulationEnabled) frequency *= 1.0f + fastSin(phase3) * 0.015f;
   frequency = clampFloat(frequency, 20.0f, 8000.0f);
