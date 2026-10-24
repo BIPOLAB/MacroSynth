@@ -77,13 +77,17 @@ void makeDefaultKickPreset(SoundPreset &preset, const char *name) {
   preset.schemaVersion = BIPO_SOUND_SCHEMA_VERSION;
   strncpy(preset.name, name ? name : "BIPO_Kick_01", sizeof(preset.name) - 1);
   preset.engine = SOUND_ENGINE_KICK;
-  preset.frequencyHz = 55.0f;
-  preset.brightness = 0.35f;
-  preset.level = 0.8f;
+  // Clean 909-inspired reference kick: a short downward pitch sweep into a
+  // low sine-like body, with FM/noise/transient layers disabled. This preset is
+  // intentionally simple so playback clarity can be judged independently of
+  // the more complex BIPO drum layering.
+  preset.frequencyHz = 48.0f;
+  preset.brightness = 0.0f;
+  preset.level = 0.95f;
   preset.modulationEnabled = false;
-  preset.amplitudeEnvelope = {0.5f, 180.0f, 0.0f, 30.0f};
+  preset.amplitudeEnvelope = {0.2f, 360.0f, 0.0f, 0.0f};
   preset.pitchEnvelope = {30.0f, 45.0f, true};
-  preset.drum = {DRUM_MODEL_KICK, 0, 0, DRUM_TRANSIENT_CLICK, 26.0f, 30.0f, 1.0f, 2.0f, 0.85f, 0.25f, 0.02f, 0.0f, 0.0f, 190.0f, 0.78f, 0.0f, 28.0f, 0.045f, 0.055f, 1800.0f, 4200.0f, true, false};
+  preset.drum = {DRUM_MODEL_KICK, 0, 0, DRUM_TRANSIENT_NONE, 28.0f, 24.0f, 1.0f, 2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 320.0f, 0.95f, 0.0f, 80.0f, 0.0f, 0.0f, 1800.0f, 4200.0f, true, false};
 }
 
 void makeDefaultDrumPreset(SoundPreset &preset, DrumModel model, const char *name) {
