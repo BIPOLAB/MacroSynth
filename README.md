@@ -33,6 +33,10 @@ La estructura está inspirada en los principios generales del FM Drum de Digiton
 | --- | --- |
 | Analog, FM, Wavetable, Pluck, Modal, Noise, Chord, Texture | Motores experimentales del prototipo |
 | BIPO DRUM | Cuerpo FM + ruido + transitorio, con ocho familias de percusión |
+| FMEngine (módulo nuevo) | Voz FM monofónica independiente de 2/4 operadores; todavía no integrada en la ruta I2S |
+
+## Motor FM modular
+Se incorpora `FMEngine.h/.cpp` como núcleo DSP autónomo, sin asignación dinámica de memoria ni dependencias de Arduino/UI. Incluye modo de 2 y 4 operadores, topologías iniciales, nivel/ratio y envolvente ADSR por operador, note-on/off y feedback acotado. Está separado deliberadamente del motor FM experimental existente hasta medir rendimiento y validar el audio en ESP32-S3. Ver [documentación del motor FM](docs/FM_ENGINE.md).
 
 ## Puerto serie (diagnóstico)
 Monitor serie a 115200 baudios. Los comandos existentes se mantienen para pruebas, pero no son necesarios para la operación habitual del instrumento. Escribe `:help` para verlos.
@@ -44,6 +48,7 @@ Monitor serie a 115200 baudios. Los comandos existentes se mantienen para prueba
 | `Config.h` | Pines y configuración |
 | `State.h/.cpp` | Estado de interfaz y DSP |
 | `Synth.h/.cpp` | Generación de audio |
+| `FMEngine.h/.cpp` | Nuevo núcleo FM modular de 2/4 operadores |
 | `SoundPreset.h/.cpp` | Modelo, listado y persistencia de presets |
 | `Audio.h/.cpp` | Bloques PCM estéreo e I2S |
 | `Controls.h/.cpp` | Encoder y antirrebote |
@@ -51,7 +56,7 @@ Monitor serie a 115200 baudios. Los comandos existentes se mantienen para prueba
 | `Display.h/.cpp` | Interfaz ST7789 |
 | `SerialControl.h/.cpp` | Herramientas de diagnóstico |
 
-Consulta [pinout](docs/PINOUT.md), [arquitectura](docs/ARCHITECTURE.md), [estudio y diseño BIPO DRUM](docs/BIPO_DRUM_ENGINE.md), [modelo de presets](docs/SOUND_PRESETS.md) y [validación](docs/TESTING.md).
+Consulta [pinout](docs/PINOUT.md), [arquitectura](docs/ARCHITECTURE.md), [estudio y diseño BIPO DRUM](docs/BIPO_DRUM_ENGINE.md), [modelo de presets](docs/SOUND_PRESETS.md), [motor FM](docs/FM_ENGINE.md) y [validación](docs/TESTING.md).
 
 ## Estado
-Prototipo MK0. La interfaz autónoma de navegación y edición está implementada en firmware, pero necesita compilación y pruebas en la placa real. Aún no hay secuenciador de 16 pasos, kits completos, polifonía ni MIDI. BIPO DRUM ahora tiene parámetros propios para cuerpo FM, barrido de tono, ruido y transitorio; los parámetros específicos de los otros motores requieren desarrollo posterior. La síntesis percusiva necesita escucha y validación en la placa real.
+Prototipo MK0. La interfaz autónoma de navegación y edición está implementada en firmware, pero necesita compilación y pruebas en la placa real. Aún no hay secuenciador de 16 pasos, kits completos, polifonía ni MIDI. BIPO DRUM tiene parámetros propios para cuerpo FM, barrido de tono, ruido y transitorio; los parámetros específicos de los otros motores requieren desarrollo posterior. La síntesis percusiva necesita escucha y validación en la placa real.
