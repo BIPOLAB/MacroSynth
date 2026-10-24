@@ -17,10 +17,18 @@ static TaskHandle_t audioTaskHandle = nullptr;
 
 static void audioTask(void *parameter) {
   (void)parameter;
+  uint8_t blocksSinceYield = 0;
+
   for (;;) {
     if (audioReady) {
       processAudioBlock();
 
+      // Keep the idle task/watchdog schedulable without pausing every block.
+      // Four 128-frame blocks are about 11.6 ms at 44.1 kHz.
+      if (++blocksSinceYield >= 4) {
+        blocksSinceYield = 0;
+        vTaskDelay(1);
+      }
     } else {
       // Do not spin at full speed if I2S initialization failed.
       vTaskDelay(pdMS_TO_TICKS(10));
