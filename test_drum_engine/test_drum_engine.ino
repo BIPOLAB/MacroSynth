@@ -3,6 +3,8 @@
 // This sketch uses the current MacroSynth Synth.cpp drum engine for an isolated test.
 #include <Arduino.h>
 #include <ESP_I2S.h>
+#include <math.h>
+#include <string.h>
 #include "Config.h"
 #include "State.h"
 #include "Synth.h"
