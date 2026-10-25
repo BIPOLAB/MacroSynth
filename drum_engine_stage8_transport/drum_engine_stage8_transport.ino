@@ -310,11 +310,22 @@ void setup() {
   Serial.println("I2S initialized. Transport starts in PLAY mode.");
 }
 
+static void updateTransportDisplay() {
+  if (playing == lastDrawnPlaying) return;
+  tft.fillRect(20, 148, 120, 18, ST77XX_BLACK);
+  tft.setTextColor(playing ? ST77XX_GREEN : ST77XX_RED);
+  tft.setTextSize(1);
+  tft.setCursor(24, 151);
+  tft.print(playing ? "PLAYING" : "STOPPED");
+  lastDrawnPlaying = playing;
+}
+
 void loop() {
   pollEncoder();
+  pollEncoderButton();
   renderAudioBlock();
   updateBpmDisplay();
-  // At most two small SPI rectangle updates per beat (~545 ms at 110 BPM).
-  // This is deliberately a stress probe, not a final real-time UI design.
+  updateTransportDisplay();
+  // Only small display regions are redrawn during playback.
   updateBeatIndicator();
 }
