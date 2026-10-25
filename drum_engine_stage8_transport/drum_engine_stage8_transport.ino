@@ -237,7 +237,31 @@ static void pollEncoder() {
   lastEncoderA = a;
 }
 
-static void pollEncoderButton() {\n  const int reading = digitalRead(PIN_ENCODER_SW);\n  const uint32_t now = millis();\n  if (reading != lastButtonReading) {\n    lastButtonReading = reading;\n    lastButtonChangeMs = now;\n  }\n  if ((uint32_t)(now - lastButtonChangeMs) >= BUTTON_DEBOUNCE_MS &&\n      reading != stableButtonState) {\n    stableButtonState = reading;\n    if (stableButtonState == LOW) {\n      playing = !playing;\n      if (playing) {\n        sampleCounter = 0;\n        stepIndex = 0;\n        lastDrawnBeat = 255;\n        Serial.println("Transport: PLAY");\n      } else {\n        Serial.println("Transport: STOP (active voices finish naturally)");\n      }\n    }\n  }\n}\n\nstatic void updateBpmDisplay() {
+static void pollEncoderButton() {
+  const int reading = digitalRead(PIN_ENCODER_SW);
+  const uint32_t now = millis();
+  if (reading != lastButtonReading) {
+    lastButtonReading = reading;
+    lastButtonChangeMs = now;
+  }
+  if ((uint32_t)(now - lastButtonChangeMs) >= BUTTON_DEBOUNCE_MS &&
+      reading != stableButtonState) {
+    stableButtonState = reading;
+    if (stableButtonState == LOW) {
+      playing = !playing;
+      if (playing) {
+        sampleCounter = 0;
+        stepIndex = 0;
+        lastDrawnBeat = 255;
+        Serial.println("Transport: PLAY");
+      } else {
+        Serial.println("Transport: STOP (active voices finish naturally)");
+      }
+    }
+  }
+}
+
+static void updateBpmDisplay() {
   if (bpm == lastDrawnBpm) return;
   tft.fillRect(20, 115, 200, 42, ST77XX_BLACK);
   tft.setTextColor(ST77XX_WHITE);
