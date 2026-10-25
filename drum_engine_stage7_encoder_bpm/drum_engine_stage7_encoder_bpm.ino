@@ -257,6 +257,12 @@ void setup() {
   Serial.println("ESP32-S3 / PCM5102 | 44.1 kHz | encoder-controlled BPM (60-180)");
   Serial.println("Kick on every beat, snare on 2/4, closed hat on eighth notes.");
 
+  // Encoder inputs: GPIO35/36 quadrature, GPIO37 pushbutton.
+  pinMode(PIN_ENCODER_A, INPUT_PULLUP);
+  pinMode(PIN_ENCODER_B, INPUT_PULLUP);
+  pinMode(PIN_ENCODER_SW, INPUT_PULLUP);
+  lastEncoderA = digitalRead(PIN_ENCODER_A);
+
   // Initial full-screen drawing happens before audio starts.
   drawStartupScreen();
 
@@ -273,7 +279,9 @@ void setup() {
 }
 
 void loop() {
+  pollEncoder();
   renderAudioBlock();
+  updateBpmDisplay();
   // At most two small SPI rectangle updates per beat (~545 ms at 110 BPM).
   // This is deliberately a stress probe, not a final real-time UI design.
   updateBeatIndicator();
