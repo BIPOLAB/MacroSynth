@@ -285,33 +285,34 @@ static void pollEncoderButton() {
     if (stableButtonState == LOW) {
       buttonPressedAtMs = now;
       longPressHandled = false;
-    } else if (!longPressHandled) {
-      uint8_t *pattern = patternForInstrument(selectedInstrument);
-      pattern[selectedStep] = !pattern[selectedStep];
-      Serial.printf("%s step %u: %s\\n", instrumentName(selectedInstrument),
-                    selectedStep + 1, pattern[selectedStep] ? "ON" : "OFF");
+    } else {
+      const uint32_t heldMs = now - buttonPressedAtMs;
+      if (!longPressHandled && heldMs >= LONG_PRESS_MS) {
+        selectedInstrument = (selectedInstrument + 1) % 3;
+        Serial.printf("Selected instrument: %s\\n", instrumentName(selectedInstrument));
+      } else if (!longPressHandled) {
+        uint8_t *pattern = patternForInstrument(selectedInstrument);
+        pattern[selectedStep] = !pattern[selectedStep];
+        Serial.printf("%s step %u: %s\\n", instrumentName(selectedInstrument),
+                      selectedStep + 1, pattern[selectedStep] ? "ON" : "OFF");
+      }
     }
   }
 
+  // A very long hold stops/starts transport; mark it handled so release
+  // does not also change the selected instrument or a pattern step.
   if (stableButtonState == LOW && !longPressHandled &&
-      (uint32_t)(now - buttonPressedAtMs) >= LONG_PRESS_MS) {
-    if ((uint32_t)(now - buttonPressedAtMs) >= TRANSPORT_HOLD_MS) {
-      playing = !playing;
-      if (playing) {
-        sampleCounter = 0;
-        stepIndex = 0;
-        lastDrawnBeat = 255;
-        Serial.println("Transport: PLAY");
-      } else {
-        Serial.println("Transport: STOP (active voices finish naturally)");
-      }
-      longPressHandled = true;
+      (uint32_t)(now - buttonPressedAtMs) >= TRANSPORT_HOLD_MS) {
+    playing = !playing;
+    if (playing) {
+      sampleCounter = 0;
+      stepIndex = 0;
+      lastDrawnBeat = 255;
+      Serial.println("Transport: PLAY");
     } else {
-      selectedInstrument = (selectedInstrument + 1) % 3;
-      Serial.printf("Selected instrument: %s\\n", instrumentName(selectedInstrument));
-      // Avoid cycling repeatedly during a continuous hold.
-      longPressHandled = true;
+      Serial.println("Transport: STOP (active voices finish naturally)");
     }
+    longPressHandled = true;
   }
 }
 
