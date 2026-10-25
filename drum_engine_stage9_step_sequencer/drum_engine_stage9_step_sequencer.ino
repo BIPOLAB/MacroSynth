@@ -371,6 +371,5 @@ void loop() {
   updateBpmDisplay();
   updateTransportDisplay();
   // Only small display regions are redrawn during playback.
-  updateBeatIndicator();
   updateStepEditorDisplay();
 }
